@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 
-import SnagHeader from "@/app/components/snag/SnagHeader";
-import SnagStats from "@/app/components/snag/SnagStats";
-import SnagCard from "@/app/components/snag/SnagCard";
-import ReportIssueModal from "@/app/components/snag/ReportIssueModal";
-import ViewImagesModal from "@/app/components/snag/ViewImagesModal";
 import ViewDetailsModal from "@/src/component/project/[stock]/snag/ViewDetailsModal";
+import SnagHeader from "@/src/component/project/[stock]/snag/SnagHeader";
+import SnagStats from "@/src/component/project/[stock]/snag/SnagStats";
+import SnagCard from "@/src/component/project/[stock]/snag/SnagCard";
+import ReportIssueModal from "@/src/component/project/[stock]/snag/ReportIssueModal";
+import ViewImagesModal from "@/src/component/project/[stock]/snag/ViewImagesModal";
 
 
 /* ✅ Type for a Snag */
