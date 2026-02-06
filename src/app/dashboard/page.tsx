@@ -1,19 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import ActionCards from "./components/ActionCard";
-import Alerts from "./components/Alerts";
-import BudgetDistribution from "./components/BudgetDistribution";
-import DashboardStats from "./components/DashboardStats";
-import ModuleCard from "./components/ModuleCard";
-import OnTimeVsDelayed from "./components/OnTimeVsDelayed";
-import ProgressChart from "./components/ProgressChat";
-import ProjectCard from "./components/ProjectCard";
+import ActionCards from "../../component/dashboard/ActionCard";
+import Alerts from "../../component/dashboard/Alerts";
+import BudgetDistribution from "../../component/dashboard/BudgetDistribution";
+import DashboardStats from "../../component/dashboard/DashboardStats";
+import ModuleCard from "../../component/dashboard/ModuleCard";
+import OnTimeVsDelayed from "../../component/dashboard/OnTimeVsDelayed";
+import ProgressChart from "../../component/dashboard/ProgressChat";
+import ProjectCard from "../../component/dashboard/ProjectCard";
 import CreateProjectModal, {
   Task,
   TaskInput,
-} from "./components/CreateProjectModal";
+} from "../../component/dashboard/CreateProjectModal";
 
 export default function DashboardPage() {
   const [showModal, setShowModal] = useState(false);
@@ -65,7 +65,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Action Cards */}
-      <ActionCards onCreateTask={() => setShowModal(true)} />
+     <ActionCards onCreateTask={() => setShowModal(true)} />
 
       {/* Project Portfolio */}
       <div className="mt-8">

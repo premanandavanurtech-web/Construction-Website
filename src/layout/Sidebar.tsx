@@ -32,7 +32,7 @@ const Sidebar = () => {
       {/* Profile */}
       <div className="flex items-center gap-3 mb-6">
         <img
-          src="https://i.pravatar.cc/100"
+          src="https://www.vanurmedia.com/images/logo-1.png"
           className="w-10 h-10 rounded-full"
           alt="profile"
         />
@@ -47,7 +47,8 @@ const Sidebar = () => {
       {/* Menu */}
       <nav className="space-y-2">
         {menu.map(({ name, path, icon: Icon, segment }) => {
-          const isActive = activeSegment === segment;
+          const isActive = segments.includes(segment);
+
 
           return (
             <button

@@ -34,7 +34,7 @@ const Field = ({
   </div>
 );
 
-const CreateTaskModal = ({ onClose, onCreate }: Props) => {
+const CreateProjectModal = ({ onClose, onCreate }: Props) => {
   const [task, setTask] = React.useState<TaskInput>({
     project: "",
     location: "",
@@ -108,4 +108,9 @@ const CreateTaskModal = ({ onClose, onCreate }: Props) => {
   );
 };
 
-export default CreateTaskModal;
+export default CreateProjectModal;
+
+
+
+
+

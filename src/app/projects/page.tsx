@@ -4,8 +4,8 @@ import {  useState } from "react";
 import CreateProjectModal, {
   Task,
   TaskInput,
-} from "../dashboard/components/CreateProjectModal";
-import ProjectCard from "../dashboard/components/ProjectCard";
+} from "../../component/dashboard/CreateProjectModal";
+import ProjectCard from "../../component/dashboard/ProjectCard";
 
 export default function ProjectPage() {
   const [projects, setProjects] = useState<Task[]>([]);

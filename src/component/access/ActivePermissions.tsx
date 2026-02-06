@@ -60,11 +60,11 @@ export default function ActivePermissions() {
         <div className="relative flex-1">
           <Search
             size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-300"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-black"
           />
           <input
             placeholder="Search Users by Name, Mail......"
-            className="w-full h-10 pl-9 pr-4 text-zinc-7
+            className="w-full h-10 pl-9 pr-4 text-black text-zinc-7
             00 border rounded-lg text-sm"
           />
         </div>
