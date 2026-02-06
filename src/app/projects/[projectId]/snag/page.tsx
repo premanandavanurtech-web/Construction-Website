@@ -7,7 +7,8 @@ import SnagStats from "@/app/components/snag/SnagStats";
 import SnagCard from "@/app/components/snag/SnagCard";
 import ReportIssueModal from "@/app/components/snag/ReportIssueModal";
 import ViewImagesModal from "@/app/components/snag/ViewImagesModal";
-import ViewDetailsModal from "@/app/components/snag/ViewDetailsModal";
+import ViewDetailsModal from "@/src/component/project/[stock]/snag/ViewDetailsModal";
+
 
 /* ✅ Type for a Snag */
 type Snag = {
