@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-  ],
+, "app/projects/[projectId]/work-progress"  ],
   "exclude": ["node_modules"]
 }
