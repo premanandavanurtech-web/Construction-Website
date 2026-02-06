@@ -1,20 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import ProjectCard from "../dashboard/components/ProjectCard";
+import {  useState } from "react";
 import CreateProjectModal, {
   Task,
   TaskInput,
 } from "../dashboard/components/CreateProjectModal";
+import ProjectCard from "../dashboard/components/ProjectCard";
 
 export default function ProjectPage() {
   const [projects, setProjects] = useState<Task[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("tasks") || "[]");
-    setProjects(stored);
-  }, []);
+  // useEffect(() => {
+  //   const stored = JSON.parse(localStorage.getItem("tasks") || "[]");
+  //   setProjects(stored);
+  // }, []);
 
   const handleCreate = (task: TaskInput) => {
     const newProject: Task = {
@@ -54,6 +54,7 @@ export default function ProjectPage() {
           <ProjectCard
             key={item.id}
             id={item.id}
+            slug={item.id}
             project={item.project}
             location={item.location}
             onDelete={handleDelete}

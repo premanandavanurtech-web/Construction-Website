@@ -1,9 +1,9 @@
 "use client";
 
-import OrderRequestTable from "@/app/components/order/OrderRequestTable";
-import OrdersHeader from "@/app/components/order/OrdersHeader";
-import OrdersTable from "@/app/components/order/OrdersTable";
-import StatusCards from "@/app/components/order/StatusCards";
+import OrderRequestTable from "@/src/component/project/[stock]/order/OrderRequestTable";
+import OrdersHeader from "@/src/component/project/[stock]/order/OrdersHeader";
+import OrdersTable from "@/src/component/project/[stock]/order/OrdersTable";
+import StatusCards from "@/src/component/project/[stock]/order/StatusCards";
 import { useState } from "react";
 
 

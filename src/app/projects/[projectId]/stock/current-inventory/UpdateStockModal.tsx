@@ -17,30 +17,51 @@ export default function UpdateStockModal({ open, onClose, item }: Props) {
   const [quantityOut, setQuantityOut] = useState("");
 
   // Fill inputs when modal opens
-  useEffect(() => {
-    if (item) {
-      setItemName(item.name);
-      setCurrentQty(item.stock);
-      setQuantityOut("");
-    }
-  }, [item]);
+// useEffect(() => {
+//   if (item) {
+//     setItemName(item.name ?? "");
+//     setCurrentQty(item.stock ?? "");
+//     setQuantityOut("");
+//   }
+// }, [item]);
+
 
   if (!open || !item) return null;
 
-  const handleUpdate = () => {
-    const data = {
-      name: itemName,
-      currentQty,
-      quantityOut,
-    };
+const handleUpdate = () => {
+  const current = Number(currentQty);
+  const out = Number(quantityOut);
 
-    localStorage.setItem(
-      `stock-${itemName}`,
-      JSON.stringify(data)
-    );
+  if (isNaN(current) || isNaN(out)) {
+    alert("Please enter valid numbers");
+    return;
+  }
 
-    onClose();
+  if (out > current) {
+    alert("Quantity out cannot be greater than current stock");
+    return;
+  }
+
+  const updatedStock = current - out;
+
+  const data = {
+    name: itemName,
+    stock: updatedStock,
   };
+
+  // remove old key if name changed
+  if (item?.name !== itemName) {
+    localStorage.removeItem(`stock-${item.name}`);
+  }
+
+  localStorage.setItem(
+    `stock-${itemName}`,
+    JSON.stringify(data)
+  );
+
+  onClose();
+};
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">

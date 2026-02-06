@@ -1,8 +1,9 @@
   "use client";
 
-  import SnagPriorityBadge from "./badges/PriorityBadge";
+  // import SnagPriorityBadge from "./badges/PriorityBadge";
   import SnagStatusBadge from "./badges/StatusBadge";
-  import SnagActions from "../../../component/snag/SnagActions";
+import SnagActions from "./SnagActions";
+
 
   type Props = {
     title: string;
@@ -39,7 +40,7 @@
           <div className="flex-1">
             <div className="flex items-center gap-3">
               <h3 className="font-medium text-[20px] text-black">{title}</h3>
-              <SnagPriorityBadge priority={priority} />
+              {/* <SnagPriorityBadge /> */}
               <SnagStatusBadge status={status} />
             </div>
 

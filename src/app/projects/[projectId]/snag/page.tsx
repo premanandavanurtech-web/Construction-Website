@@ -39,7 +39,7 @@ export default function SnagPage() {
     deadline: "Oct 12, 2026",
     reportedOn: "Oct 6, 2026",
     priority: "high",
-    status: "resolved",
+    status: "pending",
     images: [
       "https://images.pexels.com/photos/12326415/pexels-photo-12326415.jpeg",
       "https://images.pexels.com/photos/4040621/pexels-photo-4040621.jpeg",

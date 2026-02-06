@@ -47,13 +47,14 @@ const OnTimeVsDelayed = () => {
     []
   );
 
-  const options: ChartOptions<'bar'> = useMemo(
-    () => ({
+ const options = useMemo(
+  () =>
+    ({
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: 'bottom',
+          position: 'bottom' as const, // ✅ FIX
           labels: {
             usePointStyle: true,
             boxWidth: 10,
@@ -89,9 +90,10 @@ const OnTimeVsDelayed = () => {
           },
         },
       },
-    }),
-    []
-  );
+    }) as ChartOptions<'bar'>,
+  []
+);
+
 
   return (
     <div className="bg-white border rounded-xl p-6">

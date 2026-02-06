@@ -20,10 +20,10 @@ export default function DashboardPage() {
   const [projects, setProjects] = useState<Task[]>([]);
 
   // Load projects
-  useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("tasks") || "[]");
-    setProjects(stored);
-  }, []);
+  // useEffect(() => {
+  //   const stored = JSON.parse(localStorage.getItem("tasks") || "[]");
+  //   setProjects(stored);
+  // }, []);
 
   // Create project
   const handleCreate = (task: TaskInput) => {
@@ -78,6 +78,7 @@ export default function DashboardPage() {
             <ProjectCard
               key={item.id}
               id={item.id}
+              slug={item.id}
               project={item.project}
               location={item.location}
               onDelete={handleDelete}

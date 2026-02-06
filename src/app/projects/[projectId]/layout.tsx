@@ -2,33 +2,34 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 
 export default function ProjectLayout({
   children,
-  params,
 }: {
   children: React.ReactNode;
-  params: { projectId: string };
 }) {
+  const params = useParams<{ projectId: string }>();
+  const projectId = params.projectId;
+
   const [projectName, setProjectName] = useState("");
 
-  useEffect(() => {
-    const projects = JSON.parse(
-      localStorage.getItem("tasks") || "[]"
-    );
+  // useEffect(() => {
+  //   const projects = JSON.parse(
+  //     localStorage.getItem("tasks") || "[]"
+  //   );
 
-    const currentProject = projects.find(
-      (p: any) => p.slug === params.projectId
-    );
+  //   const currentProject = projects.find(
+  //     (p: any) => p.slug === projectId
+  //   );
 
-    if (currentProject) {
-      setProjectName(currentProject.project);
-    }
-  }, [params.projectId]);
+  //   if (currentProject) {
+  //     setProjectName(currentProject.project);
+  //   }
+  // }, [projectId]);
 
   return (
     <div className="p-6">
-
       {/* 🔹 Project Header */}
       <div className="mb-6">
         <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -58,7 +59,7 @@ export default function ProjectLayout({
         ].map((tab) => (
           <Link
             key={tab}
-            href={`/projects/${params.projectId}/${tab}`}
+            href={`/projects/${projectId}/${tab}`}
             className="px-4 py-2 text-sm capitalize rounded-md hover:bg-gray-100"
           >
             {tab.replace("-", " ")}
