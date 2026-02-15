@@ -8,10 +8,12 @@ type Props = {
   slug: string;
   project: string;
   location: string;
+  image?: string | null; // 👈 optional
   onDelete: (id: string) => void;
 };
 
-const ProjectCard = ({ id, slug, project, location, onDelete }: Props) => {
+
+const ProjectCard = ({ id, slug, project,image, location, onDelete }: Props) => {
   return (
     <Link href={`/projects/${slug}`} className="block">
       <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm relative cursor-pointer hover:shadow-md transition">
@@ -38,7 +40,13 @@ const ProjectCard = ({ id, slug, project, location, onDelete }: Props) => {
             On Track
           </span>
         </div>
-
+{image && (
+  <img
+    src={image}
+    alt={project}
+    className="w-full h-36 object-cover rounded-xl mb-4"
+  />
+)}
         {/* Location */}
         <div className="flex items-center gap-2 text-gray-500 mb-5">
           <MapPin size={14} />

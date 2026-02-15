@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import ActionCards from "../../component/dashboard/ActionCard";
 import Alerts from "../../component/dashboard/Alerts";
@@ -19,11 +19,7 @@ export default function DashboardPage() {
   const [showModal, setShowModal] = useState(false);
   const [projects, setProjects] = useState<Task[]>([]);
 
-  // Load projects
-  // useEffect(() => {
-  //   const stored = JSON.parse(localStorage.getItem("tasks") || "[]");
-  //   setProjects(stored);
-  // }, []);
+const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
 
   // Create project
   const handleCreate = (task: TaskInput) => {
@@ -31,12 +27,19 @@ export default function DashboardPage() {
       id: crypto.randomUUID(),
       project: task.project,
       location: task.location,
+       image: task.image ?? null,
+      createdAt: Date.now(),
+    expiresAt: Date.now() + ONE_WEEK
+
     };
 
-    const updated = [...projects, newProject];
-    setProjects(updated);
-    localStorage.setItem("tasks", JSON.stringify(updated));
-  };
+  
+  const updated = [...projects, newProject];
+  setProjects(updated);
+  localStorage.setItem("tasks", JSON.stringify(updated));
+};
+
+ 
 
   // Delete project
   const handleDelete = (id: string) => {
@@ -44,6 +47,15 @@ export default function DashboardPage() {
     setProjects(updated);
     localStorage.setItem("tasks", JSON.stringify(updated));
   };
+
+useEffect(() => {
+  const savedProjects = localStorage.getItem("tasks");
+
+  if (savedProjects) {
+    setProjects(JSON.parse(savedProjects) as Task[]);
+  }
+}, []);
+
 
   return (
     <div className="p-6 min-h-screen">

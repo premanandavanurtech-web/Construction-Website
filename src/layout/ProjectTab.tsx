@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useParams } from "next/navigation";
 import clsx from "clsx";
 
 const tabs = [
@@ -17,13 +17,13 @@ const tabs = [
 
 export default function ProjectTabs() {
   const pathname = usePathname();
+  const params = useParams<{ projectId: string }>();
+  const projectId = params.projectId;
 
   return (
     <div className="bg-white border rounded-xl p-1 flex gap-1 w-full">
       {tabs.map((tab) => {
-        const href = `/projects/${tab.slug}`;
-
-        // ✅ FIX: startsWith instead of ===
+        const href = `/projects/${projectId}/${tab.slug}`;
         const isActive = pathname.startsWith(href);
 
         return (

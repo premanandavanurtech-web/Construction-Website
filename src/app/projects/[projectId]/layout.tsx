@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import ProjectTabs from "@/src/layout/ProjectTab";
 
 export default function ProjectLayout({
   children,
@@ -14,19 +15,22 @@ export default function ProjectLayout({
 
   const [projectName, setProjectName] = useState("");
 
-  // useEffect(() => {
-  //   const projects = JSON.parse(
-  //     localStorage.getItem("tasks") || "[]"
-  //   );
 
-  //   const currentProject = projects.find(
-  //     (p: any) => p.slug === projectId
-  //   );
+  useEffect(() => {
+  const stored = localStorage.getItem("tasks");
+  if (!stored) return;
 
-  //   if (currentProject) {
-  //     setProjectName(currentProject.project);
-  //   }
-  // }, [projectId]);
+  const projects = JSON.parse(stored);
+  const currentProject = projects.find(
+    (p: any) => p.id === projectId
+  );
+
+  if (currentProject) {
+    setProjectName(currentProject.project);
+  }
+}, [projectId]);
+
+  
 
   return (
     <div className="p-6">
@@ -39,14 +43,15 @@ export default function ProjectLayout({
             {projectName || "Loading..."}
           </span>
         </div>
+      <ProjectTabs/>
 
-        <h1 className="text-2xl font-semibold mt-2">
+        {/* <h1 className="text-2xl font-semibold mt-2">
           {projectName || "Loading..."}
-        </h1>
+        </h1> */}
       </div>
 
       {/* 🔹 Tabs */}
-      <div className="flex gap-3 border-b mb-6">
+      {/* <div className="flex gap-3 border-b mb-6">
         {[
           "reece",
           "design",
@@ -65,7 +70,7 @@ export default function ProjectLayout({
             {tab.replace("-", " ")}
           </Link>
         ))}
-      </div>
+      </div> */}
 
       {/* 🔹 Page Content */}
       {children}

@@ -1,6 +1,6 @@
 "use client";
 
-import {  useState } from "react";
+import { useEffect, useState } from "react";
 import CreateProjectModal, {
   Task,
   TaskInput,
@@ -8,19 +8,24 @@ import CreateProjectModal, {
 import ProjectCard from "../../component/dashboard/ProjectCard";
 
 export default function ProjectPage() {
-  const [projects, setProjects] = useState<Task[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [projects, setProjects] = useState<Task[]>([]);
 
-  // useEffect(() => {
-  //   const stored = JSON.parse(localStorage.getItem("tasks") || "[]");
-  //   setProjects(stored);
-  // }, []);
+  // 🔑 CONNECT TO DASHBOARD (READ SAME STORAGE)
+  useEffect(() => {
+    const stored = localStorage.getItem("tasks");
+    if (stored) {
+      setProjects(JSON.parse(stored) as Task[]);
+    }
+  }, []);
 
+  // Create project
   const handleCreate = (task: TaskInput) => {
     const newProject: Task = {
       id: crypto.randomUUID(),
       project: task.project,
       location: task.location,
+      image: task.image ?? null,
     };
 
     const updated = [...projects, newProject];
@@ -28,6 +33,7 @@ export default function ProjectPage() {
     localStorage.setItem("tasks", JSON.stringify(updated));
   };
 
+  // Delete project
   const handleDelete = (id: string) => {
     const updated = projects.filter((item) => item.id !== id);
     setProjects(updated);
@@ -56,22 +62,22 @@ export default function ProjectPage() {
             id={item.id}
             slug={item.id}
             project={item.project}
+            image={item.image} 
             location={item.location}
             onDelete={handleDelete}
           />
         ))}
       </div>
 
-     {isOpen && (
-  <CreateProjectModal
-    onClose={() => setIsOpen(false)}
-    onCreate={(task) => {
-      handleCreate(task);
-      setIsOpen(false);
-    }}
-  />
-)}
-
+      {isOpen && (
+        <CreateProjectModal
+          onClose={() => setIsOpen(false)}
+          onCreate={(task) => {
+            handleCreate(task);
+            setIsOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }

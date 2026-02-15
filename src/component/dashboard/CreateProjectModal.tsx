@@ -1,17 +1,22 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { X } from "lucide-react";
+import { create } from "domain";
 
 export type TaskInput = {
   project: string;
   location: string;
+image?: string | null; 
 };
 
 export type Task = {
   id: string;
   project: string;
   location: string;
+ image?: string | null;
+ createdAt: number;   // ✅ ADD
+  expiresAt: number;   
 };
 
 type Props = {
@@ -38,6 +43,8 @@ const CreateProjectModal = ({ onClose, onCreate }: Props) => {
   const [task, setTask] = React.useState<TaskInput>({
     project: "",
     location: "",
+    image: null,
+
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,10 +55,65 @@ const CreateProjectModal = ({ onClose, onCreate }: Props) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!task.project.trim()) return;
+   
+//      const ONE_WEEK = 7*24*60*60*1000
+    
+//       const taskToStore = {
+//         id:crypto.randomUUID(),
+//         project:task.project,
+//         location:task.location,
+//         image:task.image ? URL.createObjectURL(task.image) : null ,
+//         createdAt:Date.now(),
+//         expiresAt:Date.now() + ONE_WEEK
+//       } 
 
+//       const existing  = JSON.parse(localStorage.getItem("task") || "[]")
+     
+// //save update list 
+//       localStorage.setItem(
+//         "tasks",
+//         JSON.stringify([...existing, taskToStore])
+//       )
     onCreate(task);
     onClose();
   };
+
+  useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem("tasks") || "[]")
+
+    const now  = Date.now ();
+    const validtasks = stored.filter(
+      (task:any) => task.expiresAt  > now
+     )
+
+     localStorage.setItem('tasks' , JSON.stringify(validtasks))
+  },[])
+
+  const [preview, setPreview] = React.useState<string | null>(null);
+
+const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  if(file.size > 300 * 1024){
+    alert("image must be under 300kb");
+    return ;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    setTask((prev) => ({
+      ...prev, 
+      image:reader.result as string, //BASE64
+    }))
+  }
+
+  reader.readAsDataURL(file);
+
+};
+
+
 
   return (
     <div className="fixed inset-0 text-black bg-black/40 flex items-center justify-center z-50 px-4">
@@ -73,6 +135,7 @@ const CreateProjectModal = ({ onClose, onCreate }: Props) => {
               name="project"
               value={task.project}
               onChange={handleChange}
+              required
               className="w-full h-9 px-3 bg-[#e6e6e6] rounded-md text-sm"
             />
           </Field>
@@ -82,9 +145,29 @@ const CreateProjectModal = ({ onClose, onCreate }: Props) => {
               name="location"
               value={task.location}
               onChange={handleChange}
+              required
               className="w-full h-9 px-3 bg-[#e6e6e6] rounded-md text-sm"
             />
           </Field>
+
+          <Field label="Project Image">
+  <input
+    type="file"
+    accept="image/*"
+    required
+    onChange={handleImageChange}
+    className="w-full text-sm"
+  />
+
+  {preview && (
+    <img
+      src={preview}
+      alt="Preview"
+      className="mt-2 h-28 w-full object-cover rounded-md"
+    />
+  )}
+</Field>
+
 
           <div className="flex gap-3 pt-4">
             <button

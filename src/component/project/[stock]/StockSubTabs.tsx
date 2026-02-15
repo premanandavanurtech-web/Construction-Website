@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useParams } from "next/navigation";
 import clsx from "clsx";
 
 const tabs = [
@@ -13,18 +13,20 @@ const tabs = [
 
 export default function StockSubTabs() {
   const pathname = usePathname();
+  const params = useParams<{ projectId: string }>();
+  const projectId = params.projectId;
 
   return (
     <div className="border-b border-gray-200">
       <div className="flex justify-around gap-10">
         {tabs.map((tab) => {
           const href = tab.slug
-            ? `/projects/stock/${tab.slug}`
-            : `/projects/stock`;
+            ? `/projects/${projectId}/stock/${tab.slug}`
+            : `/projects/${projectId}/stock`;
 
           const isActive =
             pathname === href ||
-            (pathname === "/projects/stock" && tab.slug === "");
+            (pathname === `/projects/${projectId}/stock` && tab.slug === "");
 
           return (
             <Link
