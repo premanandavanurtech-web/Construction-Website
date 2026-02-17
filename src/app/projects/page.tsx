@@ -21,18 +21,20 @@ export default function ProjectPage() {
 
   // Create project
   const handleCreate = (task: TaskInput) => {
-    const newProject: Task = {
-      id: crypto.randomUUID(),
-      project: task.project,
-      location: task.location,
-      image: task.image ?? null,
-    };
-
-    const updated = [...projects, newProject];
-    setProjects(updated);
-    localStorage.setItem("tasks", JSON.stringify(updated));
+    const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
+      const newProject: Task = {
+    id: crypto.randomUUID(),
+    project: task.project,
+    location: task.location,
+    image: task.image ?? null,
+    createdAt: Date.now(),
+    expiresAt: Date.now() + ONE_WEEK,
   };
 
+   const updated = [...projects, newProject];
+  setProjects(updated);
+  localStorage.setItem("tasks", JSON.stringify(updated));
+};
   // Delete project
   const handleDelete = (id: string) => {
     const updated = projects.filter((item) => item.id !== id);

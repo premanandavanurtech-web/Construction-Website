@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import ProjectTabs from "@/src/layout/ProjectTab";
 
@@ -10,69 +9,49 @@ export default function ProjectLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const params = useParams<{ projectId: string }>();
-  const projectId = params.projectId;
+  const params = useParams();
+  const projectId = params?.projectId as string | undefined;
 
-  const [projectName, setProjectName] = useState("");
-
+  const [projectName, setProjectName] = useState<string | null>(null);
 
   useEffect(() => {
-  const stored = localStorage.getItem("tasks");
-  if (!stored) return;
+    if (!projectId) return; // 🔒 VERY IMPORTANT
 
-  const projects = JSON.parse(stored);
-  const currentProject = projects.find(
-    (p: any) => p.id === projectId
-  );
+    const stored = localStorage.getItem("tasks");
+    if (!stored) return;
 
-  if (currentProject) {
-    setProjectName(currentProject.project);
+    const projects = JSON.parse(stored);
+    const currentProject = projects.find(
+      (p: any) => p.id === projectId
+    );
+
+    if (currentProject) {
+      setProjectName(currentProject.project);
+    } else {
+      setProjectName("Unknown Project");
+    }
+  }, [projectId]);
+
+  // 🔒 Prevent rendering until projectId is ready
+  if (!projectId) {
+    return <div className="p-6">Loading project...</div>;
   }
-}, [projectId]);
-
-  
 
   return (
     <div className="p-6">
-      {/* 🔹 Project Header */}
+      {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <span>Projects</span>
           <span>{">"}</span>
           <span className="text-black font-medium">
-            {projectName || "Loading..."}
+            {projectName ?? "Loading..."}
           </span>
         </div>
-      <ProjectTabs/>
 
-        {/* <h1 className="text-2xl font-semibold mt-2">
-          {projectName || "Loading..."}
-        </h1> */}
+        <ProjectTabs />
       </div>
 
-      {/* 🔹 Tabs */}
-      {/* <div className="flex gap-3 border-b mb-6">
-        {[
-          "reece",
-          "design",
-          "boq",
-          "order",
-          "work-progress",
-          "snag",
-          "finance",
-          "stock",
-        ].map((tab) => (
-          <Link
-            key={tab}
-            href={`/projects/${projectId}/${tab}`}
-            className="px-4 py-2 text-sm capitalize rounded-md hover:bg-gray-100"
-          >
-            {tab.replace("-", " ")}
-          </Link>
-        ))}
-      </div> */}
-
-      {/* 🔹 Page Content */}
       {children}
     </div>
   );

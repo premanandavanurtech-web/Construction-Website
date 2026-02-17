@@ -1,9 +1,11 @@
-import { redirect } from "next/navigation";
+import StockClient from "./stockClient";
 
-export default function StockIndexPage({
+export default async function StockIndexPage({
   params,
 }: {
-  params: { projectId: string };
+  params: Promise<{ projectId: string }>;
 }) {
-  redirect(`/projects/${params.projectId}/stock/current-inventory`);
+  const { projectId } = await params; // ✅ THIS IS THE KEY
+
+  return <StockClient projectId={projectId} />;
 }

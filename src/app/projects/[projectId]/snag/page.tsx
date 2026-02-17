@@ -1,13 +1,14 @@
 "use client";
 
+import ReportIssueModal from "@/src/component/project/snag/ReportlssueModal";
+import SnagCard from "@/src/component/project/snag/SnagCard";
+import SnagHeader from "@/src/component/project/snag/SnagHeader";
+import SnagStats from "@/src/component/project/snag/SnagStats";
+import ViewDetailsModal from "@/src/component/project/snag/ViewDetailsModal";
+import ViewImagesModal from "@/src/component/project/snag/viewImagesModal";
 import { useState } from "react";
 
-import ViewDetailsModal from "@/src/component/project/[stock]/snag/ViewDetailsModal";
-import SnagHeader from "@/src/component/project/[stock]/snag/SnagHeader";
-import SnagStats from "@/src/component/project/[stock]/snag/SnagStats";
-import SnagCard from "@/src/component/project/[stock]/snag/SnagCard";
-import ReportIssueModal from "@/src/component/project/[stock]/snag/ReportIssueModal";
-import ViewImagesModal from "@/src/component/project/[stock]/snag/ViewImagesModal";
+
 
 
 /* ✅ Type for a Snag */

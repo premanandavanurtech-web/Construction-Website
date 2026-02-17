@@ -16,9 +16,13 @@ const tabs = [
 ];
 
 export default function ProjectTabs() {
+
+  
   const pathname = usePathname();
   const params = useParams<{ projectId: string }>();
-  const projectId = params.projectId;
+const projectId = params?.projectId as string | undefined;
+
+   if (!projectId) return null;
 
   return (
     <div className="bg-white border rounded-xl p-1 flex gap-1 w-full">

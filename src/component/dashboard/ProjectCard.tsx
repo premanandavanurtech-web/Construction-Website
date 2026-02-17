@@ -13,9 +13,9 @@ type Props = {
 };
 
 
-const ProjectCard = ({ id, slug, project,image, location, onDelete }: Props) => {
+const ProjectCard = ({ id, project,image, location, onDelete }: Props) => {
   return (
-    <Link href={`/projects/${slug}`} className="block">
+    <Link href={`/projects/${id}/reece`} className="block">
       <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm relative cursor-pointer hover:shadow-md transition">
 
         {/* Delete */}

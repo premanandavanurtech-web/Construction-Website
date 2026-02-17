@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { create } from "domain";
 
 export type TaskInput = {
+  
   project: string;
   location: string;
 image?: string | null; 

@@ -1,9 +1,14 @@
 "use client";
 
-import OrderRequestTable from "@/src/component/project/[stock]/order/OrderRequestTable";
-import OrdersHeader from "@/src/component/project/[stock]/order/OrdersHeader";
-import OrdersTable from "@/src/component/project/[stock]/order/OrdersTable";
-import StatusCards from "@/src/component/project/[stock]/order/StatusCards";
+// import OrderRequestTable from "@/src/component/project/[stock]/order/OrderRequestTable";
+// import OrdersHeader from "@/src/component/project/[stock]/order/OrdersHeader";
+// import OrdersTable from "@/src/component/project/[stock]/order/OrdersTable";
+// import StatusCards from "@/src/component/project/[stock]/order/StatusCards";
+
+import OrderRequestTable from "@/src/component/project/order/OrderRequestTable"
+import OrdersTable from "@/src/component/project/order/OrderTable"
+import OrdersHeader from "@/src/component/project/order/OrdersHeader";
+import StatusCards from "@/src/component/project/order/StatusCards";
 import { useState } from "react";
 
 

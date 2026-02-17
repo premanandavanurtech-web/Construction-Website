@@ -1,7 +1,8 @@
   "use client";
 
+import SnagStatusBadge from "./Badges/StatusBadge";
   // import SnagPriorityBadge from "./badges/PriorityBadge";
-  import SnagStatusBadge from "./badges/StatusBadge";
+  // import SnagStatusBadge from "./badges/StatusBadge";
 import SnagActions from "./SnagActions";
 
 

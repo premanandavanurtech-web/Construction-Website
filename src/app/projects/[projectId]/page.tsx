@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 
-export default function ProjectIndexPage({
+export default async function ProjectIndexPage({
   params,
 }: {
   params: { projectId: string };
 }) {
-  redirect(`/projects/${params.projectId}/reece`);
+  redirect(`/projects/${params.projectId}/stock`);
 }

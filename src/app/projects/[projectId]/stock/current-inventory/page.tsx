@@ -16,14 +16,14 @@ export default function UpdateStockModal({ open, onClose, item }: Props) {
   const [currentQty, setCurrentQty] = useState("");
   const [quantityOut, setQuantityOut] = useState("");
 
-  // Fill inputs when modal opens
-// useEffect(() => {
-//   if (item) {
-//     setItemName(item.name ?? "");
-//     setCurrentQty(item.stock ?? "");
-//     setQuantityOut("");
-//   }
-// }, [item]);
+  useEffect(() => {
+  if (item && open) {
+    setItemName(item.name);
+    setCurrentQty(item.stock);
+    setQuantityOut("");
+  }
+}, [item, open]);
+
 
 
   if (!open || !item) return null;
