@@ -58,13 +58,13 @@ export default function StockMovementLogPage() {
 
                 {/* Type badge */}
                 <td className="px-4 py-3">
-                  {row.type === "Issue" ? (
+                  {row.type === "Received" ? (
                     <span className="inline-flex items-center px-3 py-[2px] text-xs font-medium rounded-sm bg-indigo-100 text-indigo-700 border border-indigo-300">
-                      Issue
+                      Received
                     </span>
                   ) : (
                     <span className="inline-flex items-center px-3 py-[2px] text-xs font-medium rounded-sm bg-green-100 text-green-700 border border-green-300">
-                      Received
+                      issue
                     </span>
                   )}
                 </td>

@@ -1,6 +1,7 @@
 "use client";
 
 import TransferRequestModal from "@/src/component/project/stock/TransferRequestModal";
+import TransferDetailsModal from "@/src/component/project/stock/transfor/TransferDetailsModal";
 import { useEffect, useState } from "react";
 
 /* 1 week in milliseconds */
@@ -19,6 +20,9 @@ export default function StockTransferPage() {
   const [openTransfer, setOpenTransfer] = useState(false);
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [isLoaded, setIsLoaded] = useState(false); // 🔥 KEY FIX
+const [rejectedIndexes, setRejectedIndexes] = useState<number[]>([]);
+const [openDetails, setOpenDetails] = useState(false);
+const [selectedTransfer, setSelectedTransfer] = useState<Transfer | null>(null);
 
   /* 🔹 Load & clean expired data */
   useEffect(() => {
@@ -51,6 +55,11 @@ export default function StockTransferPage() {
         <h2 className="text-sm font-medium text-gray-900">
           Pending Transfers
         </h2>
+<TransferDetailsModal
+  open={openDetails}
+  onClose={() => setOpenDetails(false)}
+  data={selectedTransfer}
+/>
 
         <button
           onClick={() => setOpenTransfer(true)}
@@ -68,7 +77,7 @@ export default function StockTransferPage() {
           {transfers.map((item, index) => (
             <div
               key={index}
-              className="bg-white border border-gray-200 rounded-xl p-5 space-y-4"
+              className="relative bg-white border border-gray-200 rounded-xl p-5 space-y-4"
             >
               <div>
                 <p className="text-xs text-gray-500 mb-1">
@@ -89,6 +98,7 @@ export default function StockTransferPage() {
               </div>
 
               <div className="flex items-center gap-3 pt-2">
+                 {!rejectedIndexes.includes(index) && (
                <button
   className="px-4 py-2 rounded-lg bg-green-500 text-white text-sm font-medium"
   onClick={() => {
@@ -125,11 +135,36 @@ export default function StockTransferPage() {
 >
   Accept
 </button>
+ )}
+             {!rejectedIndexes.includes(index) && (
+    <button
+      className="px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-medium"
+      onClick={() => {
+        setRejectedIndexes((prev) => [...prev, index]);
+      }}
+    >
+      Reject
+    </button>
+  )}
 
-                <button className="px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-medium">
-                  Reject
-                </button>
-                <button className="px-4 py-2 rounded-lg border border-[#344960] text-[#344960] text-sm font-medium">
+  {/* REJECT IMAGE */}
+ {rejectedIndexes.includes(index) && (
+   <img
+    src="/stamp.webp"
+    alt="Rejected"
+    className="absolute top-6 right-13 h-34 opacity-80 rotate-[-15deg] transition-opacity duration-300"
+  />
+)}
+
+
+
+                <button 
+                className="px-4 py-2  rounded-lg border border-[#344960] text-[#344960] text-sm font-medium"
+                  onClick={() => {
+    setSelectedTransfer(item);
+    setOpenDetails(true);
+  }}
+                >
                   Details
                 </button>
               </div>

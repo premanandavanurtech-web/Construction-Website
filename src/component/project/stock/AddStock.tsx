@@ -24,20 +24,17 @@ export default function AddStock({ open, onClose, projectId }: Props) {
   const [locations, setLocations] = useState<string[]>([]);
 
   /* 🔄 Load categories */
-  useEffect(() => {
-    const loadCategories = () => {
-      const stored = JSON.parse(
-        localStorage.getItem(`categories-${projectId}`) || "[]"
-      );
-      setCategories(stored);
-    };
+useEffect(() => {
+  if (!open || !projectId) return;
 
-    loadCategories();
-    window.addEventListener("categories-updated", loadCategories);
+  const stored = JSON.parse(
+    localStorage.getItem(`categories-${projectId}`) || "[]"
+  );
 
-    return () =>
-      window.removeEventListener("categories-updated", loadCategories);
-  }, [projectId]);
+  console.log("Loaded categories:", stored); // 🔍 debug
+  setCategories(stored);
+}, [open, projectId]);
+
 
   /* 🔄 Load locations */
   useEffect(() => {
