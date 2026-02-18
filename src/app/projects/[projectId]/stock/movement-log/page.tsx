@@ -1,49 +1,27 @@
 "use client";
 
-const logs = [
-  {
-    item: "Cement (50kg)",
-    type: "Issue",
-    quantity: "450 Bags",
-    from: "Warehouse A",
-    to: "Site-Phase 1",
-    issuedBy: "Rahul",
-    date: "Oct6,2025",
-    invoice: "Inv-2025-001",
-  },
-  {
-    item: "Steel TMT Bars",
-    type: "Received",
-    quantity: "85 Tons",
-    from: "Warehouse A",
-    to: "Warehouse B",
-    issuedBy: "Amit",
-    date: "Oct6,2025",
-    invoice: "Inv-2025-001",
-  },
-  {
-    item: "Sand(M-Sand)",
-    type: "Issue",
-    quantity: "320 CFT",
-    from: "Site Storage",
-    to: "Site Phase 2",
-    issuedBy: "Priya",
-    date: "Oct6,2025",
-    invoice: "Inv-2025-001",
-  },
-  {
-    item: "Paint (Asian)",
-    type: "Received",
-    quantity: "12 ltrs",
-    from: "Warehouse B",
-    to: "Warehouse A",
-    issuedBy: "Amit",
-    date: "Oct6,2025",
-    invoice: "Inv-2025-001",
-  },
-];
+import { useEffect, useState } from "react";
+
+type StockLog = {
+  item: string;
+  type:  "Received";
+  quantity: string;
+  from: string;
+  to: string;
+  issuedBy: string;
+  date: string;
+  invoice: string;
+};
 
 export default function StockMovementLogPage() {
+   const [logs, setLogs] = useState<StockLog[]>([]);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("stockLogs");
+    if (stored) {
+      setLogs(JSON.parse(stored));
+    }
+  }, []);
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-5">
       

@@ -1,26 +1,49 @@
-export default function StockHeader() {
-  return (
-    <div className="flex items-center justify-between">
-      {/* Left side */}
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Stock Management
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          track, organize, and control their inventory in real-time
-        </p>
-      </div>
+"use client";
 
-      {/* Right side */}
-      <div className="flex items-center gap-4">
-        <button className="px-6 py-2 rounded-lg border border-gray-900 text-gray-900 font-medium hover:bg-gray-100 transition">
+import { useState } from "react";
+import AddStock from "./AddStock";
+import IssueStockModal from "./IssueStock";
+
+export default function StockHeader({ projectId }: { projectId: string }) {
+  const [openAdd, setOpenAdd] = useState(false);
+const [open, setOpen] = useState(false)
+  return (
+    <>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl text-[#38485e]  font-semibold">Stock Management</h1>
+          <p className="text-sm mt-2 text-gray-500">
+            Track and control inventory
+          </p>
+        </div>
+<div className="">
+
+        <button
+          onClick={() => setOpen(true)}
+          className="text-slate-700 bg-white mr-6 border-slate-800 border-2 px-6 py-2 rounded-lg"
+        >
           Issue Stock
         </button>
 
-        <button className="px-6 py-2 rounded-lg bg-slate-700 text-white font-medium hover:bg-slate-800 transition">
+        <button
+          onClick={() => setOpenAdd(true)}
+          className="bg-slate-700 text-white px-6 py-2 rounded-lg"
+        >
           + Add Stock
         </button>
+</div>
       </div>
-    </div>
+
+      <AddStock
+        open={openAdd}
+        projectId={projectId}
+        onClose={() => setOpenAdd(false)}
+      />
+      <IssueStockModal
+  open={open}
+  onClose={() => setOpen(false)}
+  onSubmit={() => console.log("Issued")}
+/>
+    </>
   );
 }

@@ -17,7 +17,7 @@ export default function StockSubTabs() {
   const projectId = params.projectId;
 
   return (
-    <div className="border-b border-gray-200">
+    <div className="border-b mt-7 border-gray-200">
       <div className="flex justify-around gap-10">
         {tabs.map((tab) => {
           const href = tab.slug

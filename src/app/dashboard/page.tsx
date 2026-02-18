@@ -47,7 +47,7 @@ const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
     setProjects(updated);
     localStorage.setItem("tasks", JSON.stringify(updated));
   };
-
+  
 useEffect(() => {
   const savedProjects = localStorage.getItem("tasks");
 

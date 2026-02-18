@@ -16,7 +16,7 @@ const StatCard = ({ label, value }: StatCardProps) => {
 
 export default function StockStats() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 mt-6 lg:grid-cols-4 gap-6">
       <StatCard label="Total Items" value="05" />
       <StatCard label="Low Stock Alert" value="02" />
       <StatCard label="Total Stock Value" value="₹45,67,890" />
