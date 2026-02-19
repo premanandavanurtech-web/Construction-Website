@@ -16,9 +16,14 @@ type StockLog = {
 type Props = {
   open: boolean;
   onClose: () => void;
+  onSubmit: () => void; // ✅ ADDED
 };
 
-export default function IssueStockModal({ open, onClose }: Props) {
+export default function IssueStockModal({
+  open,
+  onClose,
+  onSubmit,
+}: Props) {
   const [item, setItem] = useState("");
   const [quantity, setQuantity] = useState("");
   const [unit, setUnit] = useState("");
@@ -26,20 +31,52 @@ export default function IssueStockModal({ open, onClose }: Props) {
   const [stockItems, setStockItems] = useState<string[]>([]);
 
   /* 🔹 Load available items from RECEIVED logs */
- useEffect(() => {
-  const logs: StockLog[] = JSON.parse(
-    localStorage.getItem("stockLogs") || "[]"
-  );
+  useEffect(() => {
+    const logs: StockLog[] = JSON.parse(
+      localStorage.getItem("stockLogs") || "[]"
+    );
 
-  const receivedItems = logs
-    .filter((log) => log.type === "Received")
-    .map((log) => log.item);
+    const receivedItems = logs
+      .filter((log) => log.type === "Received")
+      .map((log) => log.item);
 
-  setStockItems([...new Set(receivedItems)]);
-}, []);
-
+    setStockItems([...new Set(receivedItems)]);
+  }, []);
 
   if (!open) return null;
+
+  const handleIssue = () => {
+    if (!item || !quantity || !issueTo) return;
+
+    const logs: StockLog[] = JSON.parse(
+      localStorage.getItem("stockLogs") || "[]"
+    );
+
+    const updatedLogs = logs.map((log) => {
+      if (log.item === item && log.type === "Received") {
+        return {
+          ...log,
+          type: "Issued",
+          quantity: `${quantity} ${unit}`,
+          from: "Warehouse",
+          to: issueTo,
+          issuedBy: "Admin",
+          date: new Date().toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          }),
+          invoice: `ISS-${Date.now()}`,
+        };
+      }
+      return log;
+    });
+
+    localStorage.setItem("stockLogs", JSON.stringify(updatedLogs));
+
+    onSubmit(); // ✅ notify parent
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
@@ -49,7 +86,6 @@ export default function IssueStockModal({ open, onClose }: Props) {
         </h2>
 
         <div className="space-y-4 text-black">
-          {/* Select Item */}
           <div>
             <label className="text-sm text-gray-700 block mb-1">
               Select Item
@@ -68,7 +104,6 @@ export default function IssueStockModal({ open, onClose }: Props) {
             </select>
           </div>
 
-          {/* Quantity */}
           <div>
             <label className="text-sm text-gray-700 block mb-1">
               Quantity
@@ -80,9 +115,10 @@ export default function IssueStockModal({ open, onClose }: Props) {
             />
           </div>
 
-          {/* Unit */}
           <div>
-            <label className="text-sm text-gray-700 block mb-1">Unit</label>
+            <label className="text-sm text-gray-700 block mb-1">
+              Unit
+            </label>
             <input
               value={unit}
               onChange={(e) => setUnit(e.target.value)}
@@ -90,7 +126,6 @@ export default function IssueStockModal({ open, onClose }: Props) {
             />
           </div>
 
-          {/* Issue To */}
           <div>
             <label className="text-sm text-gray-700 block mb-1">
               Issue To (Site/Phase)
@@ -103,7 +138,6 @@ export default function IssueStockModal({ open, onClose }: Props) {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="flex justify-end gap-3 mt-8">
           <button
             onClick={onClose}
@@ -113,39 +147,7 @@ export default function IssueStockModal({ open, onClose }: Props) {
           </button>
 
           <button
-          onClick={() => {
-  if (!item || !quantity || !issueTo) return;
-
-  const logs: StockLog[] = JSON.parse(
-    localStorage.getItem("stockLogs") || "[]"
-  );
-
-  // 🔍 Find RECEIVED item
-  const updatedLogs = logs.map((log) => {
-    if (log.item === item && log.type === "Received") {
-      return {
-        ...log,
-        type: "Issued",                 // ✅ convert
-        quantity: `${quantity} ${unit}`,
-        from: "Warehouse",
-        to: issueTo,
-        issuedBy: "Admin",
-        date: new Date().toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        }),
-        invoice: `ISS-${Date.now()}`,
-      };
-    }
-    return log;
-  });
-
-  localStorage.setItem("stockLogs", JSON.stringify(updatedLogs));
-
-  onClose();
-}}
-
+            onClick={handleIssue}
             className="px-6 py-2 rounded-lg bg-slate-700 text-white hover:bg-slate-800"
           >
             Issue Stock

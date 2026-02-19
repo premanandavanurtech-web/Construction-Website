@@ -124,13 +124,7 @@ export default function StockMovementLogPage() {
 
     </div>
     <h1>Issued stock</h1>
-      <IssuedStockCard
-  item="Concrete Mix (M25)"
-  quantity="10"
-  unit="Tons"
-  issueTo="Site B"
-  onDetails={() => console.log("Open details")}
-/>
+      <IssuedStockCard/>
     </>
   );
 }

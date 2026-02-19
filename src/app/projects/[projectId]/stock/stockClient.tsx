@@ -3,81 +3,37 @@
 import { useEffect, useState } from "react";
 
 import CurrentStock from "@/src/component/project/stock/CurrentStock";
-import CurrentInventoryLayout from "@/src/app/projects/[projectId]/stock/current-inventory/layout";
+import CurrentInventoryLayout from "@/src/component/project/stock/CurrentInventoryTable";
 import UpdateStockModal from "@/src/component/project/stock/UpdateStockModal";
 import CreateCategoryModal from "@/src/component/project/stock/CreateCategoryModal";
 import CreateLocationModal from "@/src/component/project/stock/CreateLocationModal";
-
 import StockFilterModal, {
   StockFilters,
 } from "@/src/component/project/stock/StockFilterModal";
 
-type StockItem = {
-  name: string;
-  category: string;
-  current: number;
-  min: number;
-  location: string;
-  status: string;
-  updated: string;
-  createdAt: number;
-  updatedAt: number;
-  expiresAt: number;
-};
+import { StockItem } from "@/src/ts/stock";
 
-export default function StockClient({
-  projectId,
-}: {
-  projectId: string;
-}) {
+export default function StockClient({ projectId }: { projectId: string }) {
   const [items, setItems] = useState<StockItem[]>([]);
+  const [search, setSearch] = useState("");
+
   const [openEdit, setOpenEdit] = useState(false);
   const [selected, setSelected] = useState<StockItem | null>(null);
-  const [openCategory, setOpenCategory] = useState(false);
-const [search, setSearch] = useState("");
-const [openLocation, setOpenLocation] = useState(false);
 
-
-  // 🔎 Filter state
   const [openFilter, setOpenFilter] = useState(false);
+  const [openCategory, setOpenCategory] = useState(false);
+  const [openLocation, setOpenLocation] = useState(false);
+
   const [filters, setFilters] = useState<StockFilters>({
-     category: "",
-  location: "",
-  minStock: "",
-  currentStock: "",
-  createdOn: "" ,
-   
-    
+    category: "",
+    location: "",
+    minStock: "",
+    currentStock: "",
+    createdOn: "",
   });
 
   const [categories, setCategories] = useState<string[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
-
-  // 🔍 Filter logic
-const filteredItems = items.filter((item) => {
-  // 🔍 Search by item name
-  if (
-    search &&
-    !item.name.toLowerCase().includes(search.toLowerCase())
-  ) {
-    return false;
-  }
-
-  // Existing filters
-  if (filters.category && item.category !== filters.category) return false;
-  if (filters.location && item.location !== filters.location) return false;
-  if (filters.minStock && item.min > Number(filters.minStock)) return false;
-  if (filters.currentStock && item.current > Number(filters.currentStock)) return false;
-
-  if (filters.createdOn) {
-    const itemDate = new Date(item.createdAt).toISOString().split("T")[0];
-    if (itemDate !== filters.createdOn) return false;
-  }
-
-  return true;
-});
-
-
 
   const loadStock = () => {
     const now = Date.now();
@@ -105,21 +61,49 @@ const filteredItems = items.filter((item) => {
     loadStock();
 
     setCategories(
-      JSON.parse(
-        localStorage.getItem(`categories-${projectId}`) || "[]"
-      )
+      JSON.parse(localStorage.getItem(`categories-${projectId}`) || "[]")
     );
 
     setLocations(
-      JSON.parse(
-        localStorage.getItem(`locations-${projectId}`) || "[]"
-      )
+      JSON.parse(localStorage.getItem(`locations-${projectId}`) || "[]")
     );
+
+    const handleCategoriesUpdated = () => {
+      setCategories(
+        JSON.parse(localStorage.getItem(`categories-${projectId}`) || "[]")
+      );
+    };
+
+    window.addEventListener("categories-updated", handleCategoriesUpdated);
+    return () =>
+      window.removeEventListener(
+        "categories-updated",
+        handleCategoriesUpdated
+      );
   }, [projectId]);
+
+  const filteredItems = items.filter((item) => {
+    if (search && !item.name.toLowerCase().includes(search.toLowerCase()))
+      return false;
+    if (filters.category && item.category !== filters.category) return false;
+    if (filters.location && item.location !== filters.location) return false;
+    if (filters.minStock && item.min > Number(filters.minStock)) return false;
+    if (filters.currentStock && item.current > Number(filters.currentStock))
+      return false;
+
+    if (filters.createdOn) {
+      const itemDate = new Date(item.createdAt)
+        .toISOString()
+        .split("T")[0];
+      if (itemDate !== filters.createdOn) return false;
+    }
+
+    return true;
+  });
 
   return (
     <>
-      {/* FILTER MODAL */}
+      {/* Filters */}
       <StockFilterModal
         open={openFilter}
         onClose={() => setOpenFilter(false)}
@@ -131,7 +115,7 @@ const filteredItems = items.filter((item) => {
         locations={locations}
       />
 
-      {/* UPDATE MODAL */}
+      {/* Edit */}
       <UpdateStockModal
         open={openEdit}
         item={selected}
@@ -141,45 +125,46 @@ const filteredItems = items.filter((item) => {
           loadStock();
         }}
       />
+
+      {/* Category */}
       <CreateCategoryModal
-  open={openCategory}
-  projectId={projectId}
-  onClose={() => setOpenCategory(false)}
-  onSubmit={() => {
-    window.dispatchEvent(new Event("categories-updated"));
-    setOpenCategory(false);
-  }}
-/>
+        open={openCategory}
+        projectId={projectId}
+        onClose={() => setOpenCategory(false)}
+        onSubmit={() => {
+          window.dispatchEvent(new Event("categories-updated"));
+          setOpenCategory(false);
+        }}
+      />
 
-<CreateLocationModal
-  open={openLocation}
-  projectId={projectId}
-  onClose={() => setOpenLocation(false)}
-/>
+      {/* Location */}
+      <CreateLocationModal
+        open={openLocation}
+        projectId={projectId}
+        onClose={() => setOpenLocation(false)}
+      />
 
-
-
-     <CurrentInventoryLayout
-  onOpenFilter={() => setOpenFilter(true)}
-  onOpenCategory={() => setOpenCategory(true)}
-  onOpenLocation={() => setOpenLocation(true)}
-  search={search}
-  onSearchChange={setSearch}
->
-  <CurrentStock
-    projectId={projectId}
-    stocks={filteredItems}
-    onEdit={(item) => {
-      setSelected(item);
-      setOpenEdit(true);
-    }}
-    onDelete={(item) => {
-      localStorage.removeItem(`stock-${projectId}-${item.name}`);
-      loadStock();
-    }}
-  />
-</CurrentInventoryLayout>
-
+      {/* Table */}
+      <CurrentInventoryLayout
+        search={search}
+        onSearchChange={setSearch}
+        onOpenFilter={() => setOpenFilter(true)}
+        onOpenCategory={() => setOpenCategory(true)}
+        onOpenLocation={() => setOpenLocation(true)}
+      >
+        <CurrentStock
+          projectId={projectId}
+          stocks={filteredItems}
+          onEdit={(item) => {
+            setSelected(item);
+            setOpenEdit(true);
+          }}
+          onDelete={(item) => {
+            localStorage.removeItem(`stock-${projectId}-${item.name}`);
+            loadStock();
+          }}
+        />
+      </CurrentInventoryLayout>
     </>
   );
 }
