@@ -1,10 +1,11 @@
 "use client";
 
+import IssuedStockCard from "@/src/component/project/stock/IssuedStockCard";
 import { useEffect, useState } from "react";
-
+type StockType = "Received" | "Issued";
 type StockLog = {
   item: string;
-  type:  "Received";
+  type:StockType;
   quantity: string;
   from: string;
   to: string;
@@ -22,7 +23,15 @@ export default function StockMovementLogPage() {
       setLogs(JSON.parse(stored));
     }
   }, []);
+  const handleDelete = (index: number) => {
+  const updatedLogs = logs.filter((_, i) => i !== index);
+  setLogs(updatedLogs);
+  localStorage.setItem("stockLogs", JSON.stringify(updatedLogs));
+};
+
   return (
+    <>
+
     <div className="bg-white rounded-2xl border border-gray-200 p-5">
       
       {/* Title */}
@@ -97,11 +106,31 @@ export default function StockMovementLogPage() {
                     {row.invoice}
                   </a>
                 </td>
+                <td className="px-4 py-3 text-center">
+  <button
+    onClick={() => handleDelete(i)}
+    className="text-red-500 hover:text-red-700"
+    title="Delete"
+  >
+    🗑️
+  </button>
+</td>
+
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
     </div>
+    <h1>Issued stock</h1>
+      <IssuedStockCard
+  item="Concrete Mix (M25)"
+  quantity="10"
+  unit="Tons"
+  issueTo="Site B"
+  onDetails={() => console.log("Open details")}
+/>
+    </>
   );
 }

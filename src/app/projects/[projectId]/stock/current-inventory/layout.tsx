@@ -42,28 +42,37 @@ export default function CurrentInventoryLayout({
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto border rounded-xl">
+      <div className="overflow-x-auto text-gray-300 p-3 text-center border rounded-xl">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th>Item Name</th>
-              <th>
-                Category{" "}
-                <button onClick={onOpenCategory} className="text-blue-600">+</button>
-              </th>
-              <th>Current Stock</th>
-              <th>Min. Stock</th>
-              <th>
-                Location{" "}
-                {onOpenLocation && (
-                  <button onClick={onOpenLocation} className="text-blue-600">+</button>
-                )}
-              </th>
-              <th>Status</th>
-              <th>Last Updated</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
+          <thead className="bg-gray-50 border-b">
+  <tr className="text-left text-gray-600">
+    <th className="px-6 py-3">Item Name</th>
+
+    <th className="px-6 py-3">
+      Category{" "}
+      <button onClick={onOpenCategory} className="text-blue-600 font-bold">
+        +
+      </button>
+    </th>
+
+    <th className="px-6 py-3">Current Stock</th>
+    <th className="px-6 py-3">Min. Stock</th>
+
+    <th className="px-6 py-3">
+      Location{" "}
+      {onOpenLocation && (
+        <button onClick={onOpenLocation} className="text-blue-600 font-bold">
+          +
+        </button>
+      )}
+    </th>
+
+    <th className="px-6 py-3">Status</th>
+    <th className="px-6 py-3">Last Updated</th>
+    <th className="px-6 py-3 text-center">Actions</th>
+  </tr>
+</thead>
+
 
           {children}
         </table>

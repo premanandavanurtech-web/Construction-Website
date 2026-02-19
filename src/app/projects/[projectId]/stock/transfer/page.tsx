@@ -104,7 +104,7 @@ const [selectedTransfer, setSelectedTransfer] = useState<Transfer | null>(null);
   onClick={() => {
     const newLog = {
       item: item.itemName,
-      type: "Issue",
+      type: "Received",
       quantity: item.quantity,
       from: item.destinationLocation,
       to: item.destinationLocation,

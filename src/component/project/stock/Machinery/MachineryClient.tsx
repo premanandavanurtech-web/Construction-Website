@@ -120,19 +120,19 @@ export default function MachineryClient({ projectId }: { projectId: string }) {
             ) : (
               machinery.map((item, i) => (
                 <tr key={i} className="border-b last:border-none hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium">{item.name}</td>
-                  <td className="px-4 py-3 text-gray-500">{item.category}</td>
-                  <td className="px-4 py-3">{item.current}</td>
-                  <td className="px-4 py-3 text-gray-400">{item.min}</td>
-                  <td className="px-4 py-3">{item.location}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4  text-black py-3 font-medium">{item.name}</td>
+                  <td className="px-4 py-3 text-black">{item.category}</td>
+                  <td className="px-4  text-black py-3">{item.current}</td>
+                  <td className="px-4  text-black py-3 ">{item.min}</td>
+                  <td className="px-4  text-black py-3">{item.location}</td>
+                  <td className="px-4  text-black py-3">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${item.current <= item.min ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
                       {item.status}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-gray-400 text-xs">{item.updated}</td>
                   <td className="px-4 py-3">
-                    <div className="flex justify-center gap-3 text-gray-400">
+                    <div className="flex justify-center  gap-3 text-black">
                       <button className="hover:text-blue-500"><Eye size={16} /></button>
                       <button className="hover:text-red-500" onClick={() => { localStorage.removeItem(`stock-${projectId}-${item.name}`); loadStock(); }}><Trash2 size={16} /></button>
                       <button className="hover:text-yellow-500"><Pencil size={16} /></button>
