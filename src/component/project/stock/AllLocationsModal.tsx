@@ -37,7 +37,7 @@ export default function AllLocationsModal({
         </h2>
 
         {locations.length === 0 ? (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-800">
             No locations created
           </p>
         ) : (
@@ -45,7 +45,7 @@ export default function AllLocationsModal({
             {locations.map((loc) => (
               <div
                 key={loc}
-                className="flex justify-between items-center border rounded-lg px-3 py-2"
+                className="flex justify-between text-black items-center border rounded-lg px-3 py-2"
               >
                 <span className="text-sm">{loc}</span>
                 <button

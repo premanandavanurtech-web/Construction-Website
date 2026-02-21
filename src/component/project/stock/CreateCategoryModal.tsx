@@ -62,7 +62,7 @@ export default function CreateCategoryModal({
 
         <button
           onClick={() => setOpenAll(true)}
-          className="px-4 h-8 mb-4 rounded-lg bg-[#344960] text-white text-sm"
+       className="px-6 h-8 ml-68 relative -top-11  rounded-lg bg-[#344960] text-white text-sm  hover:underline"
         >
           View All
         </button>
@@ -80,7 +80,7 @@ export default function CreateCategoryModal({
         <div className="flex justify-between mt-6">
           <button
             onClick={onClose}
-            className="px-6 h-10 rounded-lg border text-sm"
+            className="px-6 text-black h-10 rounded-lg border text-sm"
           >
             Cancel
           </button>
@@ -144,7 +144,7 @@ function Textarea({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={4}
-        className="w-full rounded-lg bg-gray-100 px-3 py-2 outline-none resize-none"
+        className="w-full text-black rounded-lg bg-gray-100 px-3 py-2 outline-none resize-none"
       />
     </div>
   );

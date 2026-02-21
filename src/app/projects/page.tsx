@@ -1,45 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import CreateProjectModal, {
-  Task,
-  TaskInput,
-} from "../../component/dashboard/CreateProjectModal";
+import CreateProjectModal from "../../component/dashboard/CreateProjectModal";
 import ProjectCard from "../../component/dashboard/ProjectCard";
+import { Project } from "@/src/ts/project";
 
 export default function ProjectPage() {
   const [isOpen, setIsOpen] = useState(false);
-  const [projects, setProjects] = useState<Task[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
 
-  // 🔑 CONNECT TO DASHBOARD (READ SAME STORAGE)
+  // Read from same "projects" key as dashboard
   useEffect(() => {
-    const stored = localStorage.getItem("tasks");
+    const stored = localStorage.getItem("projects");
     if (stored) {
-      setProjects(JSON.parse(stored) as Task[]);
+      setProjects(JSON.parse(stored) as Project[]);
     }
   }, []);
 
-  // Create project
-  const handleCreate = (task: TaskInput) => {
-    const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
-      const newProject: Task = {
-    id: crypto.randomUUID(),
-    project: task.project,
-    location: task.location,
-    image: task.image ?? null,
-    createdAt: Date.now(),
-    expiresAt: Date.now() + ONE_WEEK,
+  // Called by modal — modal already saved to localStorage
+  const handleCreate = (project: Project) => {
+    setProjects((prev) => [...prev, project]);
   };
 
-   const updated = [...projects, newProject];
-  setProjects(updated);
-  localStorage.setItem("tasks", JSON.stringify(updated));
-};
   // Delete project
   const handleDelete = (id: string) => {
-    const updated = projects.filter((item) => item.id !== id);
+    const updated = projects.filter((p) => p.id !== id);
     setProjects(updated);
-    localStorage.setItem("tasks", JSON.stringify(updated));
+    localStorage.setItem("projects", JSON.stringify(updated));
   };
 
   return (
@@ -58,14 +45,10 @@ export default function ProjectPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {projects.map((item) => (
+        {projects.map((project) => (
           <ProjectCard
-            key={item.id}
-            id={item.id}
-            slug={item.id}
-            project={item.project}
-            image={item.image} 
-            location={item.location}
+            key={project.id}
+            project={project}
             onDelete={handleDelete}
           />
         ))}
@@ -74,8 +57,8 @@ export default function ProjectPage() {
       {isOpen && (
         <CreateProjectModal
           onClose={() => setIsOpen(false)}
-          onCreate={(task) => {
-            handleCreate(task);
+          onCreate={(project) => {
+            handleCreate(project);
             setIsOpen(false);
           }}
         />

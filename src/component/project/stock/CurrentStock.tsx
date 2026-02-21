@@ -2,87 +2,110 @@
 
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import { StockItem } from "@/src/ts/stock";
+import { useState } from "react";
+import ConfirmDeleteModal from "@/src/layout/ConfirmDeleteModal";
 
 type Props = {
   projectId: string;
   stocks: StockItem[];
   onEdit: (item: StockItem) => void;
   onDelete: (item: StockItem) => void;
+  onView: (item: StockItem) => void;
 };
 
 export default function CurrentStock({
   stocks,
   onEdit,
   onDelete,
+  onView, // ✅ destructured
 }: Props) {
+  const [deleteItem, setDeleteItem] = useState<StockItem | null>(null);
+
   return (
-    <tbody className="divide-y divide-gray-200">
-      {stocks.length === 0 ? (
-        <tr>
-          <td colSpan={8} className="py-10 text-center text-gray-500">
-            No stock items found
-          </td>
-        </tr>
-      ) : (
-        stocks.map((item, index) => (
-          <tr key={index} className="hover:bg-gray-50">
-            <td className="px-6 py-4 font-medium text-gray-900">
-              {item.name}
-            </td>
-
-            <td className="px-6 py-4 text-gray-700">
-              {item.category}
-            </td>
-
-            <td className="px-6 py-4 text-gray-900">
-              {item.current}
-            </td>
-
-            <td className="px-6 py-4 text-gray-500">
-              {item.min}
-            </td>
-
-            <td className="px-6 py-4 text-gray-900">
-              {item.location}
-            </td>
-
-            <td className="px-6 py-4">
-              <span
-                className={`px-3 py-1 rounded-md text-xs font-medium border ${
-                  item.status === "Low Stock"
-                    ? "bg-red-100 text-red-600 border-red-300"
-                    : "bg-green-100 text-green-600 border-green-300"
-                }`}
-              >
-                {item.status}
-              </span>
-            </td>
-
-            <td className="px-6 py-4 text-gray-500">
-              {formatTimeAgo(item.createdAt)}
-            </td>
-
-            <td className="px-6 py-4 text-center">
-              <div className="flex justify-center gap-4 text-gray-500">
-                <button onClick={() => onEdit(item)}>
-                  <Eye size={16} />
-                </button>
-                <button onClick={() => onDelete(item)}>
-                  <Trash2 size={16} />
-                </button>
-                <button onClick={() => onEdit(item)}>
-                  <Pencil size={16} />
-                </button>
-              </div>
+    <>
+      <tbody className="divide-y divide-gray-200">
+        {stocks.length === 0 ? (
+          <tr>
+            <td colSpan={8} className="py-10 text-center text-gray-500">
+              No stock items found
             </td>
           </tr>
-        ))
-      )}
-    </tbody>
+        ) : (
+          stocks.map((item, index) => (
+            <tr key={index} className="hover:bg-gray-50">
+              <td className="px-6 py-4 font-medium text-gray-900">
+                {item.name}
+              </td>
+
+              <td className="px-6 py-4 text-gray-700">
+                {item.category}
+              </td>
+
+              <td className="px-6 py-4 text-gray-900">
+                {item.current}
+              </td>
+
+              <td className="px-6 py-4 text-gray-500">
+                {item.min}
+              </td>
+
+              <td className="px-6 py-4 text-gray-900">
+                {item.location}
+              </td>
+
+              <td className="px-6 py-4">
+                <span
+                  className={`px-3 py-1 rounded-md text-xs font-medium border ${
+                    item.status === "Low Stock"
+                      ? "bg-red-100 text-red-600 border-red-300"
+                      : "bg-green-100 text-green-600 border-green-300"
+                  }`}
+                >
+                  {item.status}
+                </span>
+              </td>
+
+              <td className="px-6 py-4 text-gray-500">
+                {formatTimeAgo(item.createdAt)}
+              </td>
+
+              <td className="px-6 py-4 text-center">
+                <div className="flex justify-center gap-4 text-gray-500">
+                  <button onClick={() => onView(item)}> {/* ✅ fixed */}
+                    <Eye size={16} />
+                  </button>
+
+                  <button
+                    className="hover:text-red-500"
+                    onClick={() => setDeleteItem(item)}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+
+                  <button onClick={() => onEdit(item)}>
+                    <Pencil size={16} />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))
+        )}
+      </tbody>
+
+      <ConfirmDeleteModal
+        open={!!deleteItem}
+        itemName={deleteItem?.name}
+        onCancel={() => setDeleteItem(null)}
+        onConfirm={() => {
+          if (!deleteItem) return;
+          onDelete(deleteItem);
+          setDeleteItem(null);
+        }}
+      />
+    </>
   );
 }
 
-/* 🕒 Time formatter */
 function formatTimeAgo(timestamp: number) {
   const diff = Date.now() - timestamp;
 

@@ -11,55 +11,61 @@ type Transfer = {
   itemName: string;
   quantity: string;
   requestedBy: string;
-   sourceLocation: string;
+  sourceLocation: string;
   destinationLocation: string;
   createdAt: number;
+  decision?: "accepted" | "rejected";
 };
+
+type FilterType = "all" | "accepted" | "rejected";
 
 export default function StockTransferPage() {
   const [openTransfer, setOpenTransfer] = useState(false);
   const [transfers, setTransfers] = useState<Transfer[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false); // 🔥 KEY FIX
-const [rejectedIndexes, setRejectedIndexes] = useState<number[]>([]);
-const [openDetails, setOpenDetails] = useState(false);
-const [selectedTransfer, setSelectedTransfer] = useState<Transfer | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  /* 🔹 Load & clean expired data */
+  const [filter, setFilter] = useState<FilterType>("all");
+
+  const [openDetails, setOpenDetails] = useState(false);
+  const [selectedTransfer, setSelectedTransfer] =
+    useState<Transfer | null>(null);
+
+  /* 🔹 Load & clean expired transfers */
   useEffect(() => {
     const stored = localStorage.getItem("transfers");
 
     if (stored) {
       const parsed: Transfer[] = JSON.parse(stored);
 
-      const validTransfers = parsed.filter(
-        (item) => Date.now() - item.createdAt < ONE_WEEK
+      const valid = parsed.filter(
+        (t) => Date.now() - t.createdAt < ONE_WEEK
       );
 
-      setTransfers(validTransfers);
+      setTransfers(valid);
     }
 
-    setIsLoaded(true); // ✅ mark load complete
+    setIsLoaded(true);
   }, []);
 
-  /* 🔹 Save ONLY after initial load */
+  /* 🔹 Persist transfers */
   useEffect(() => {
-    if (!isLoaded) return; // 🔥 prevent overwrite
-
+    if (!isLoaded) return;
     localStorage.setItem("transfers", JSON.stringify(transfers));
   }, [transfers, isLoaded]);
+
+  /* 🔹 Apply filter */
+  const filteredTransfers = transfers.filter((t) => {
+    if (filter === "all") return true;
+    return t.decision === filter;
+  });
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-medium text-gray-900">
-          Pending Transfers
+          Stock Transfers
         </h2>
-<TransferDetailsModal
-  open={openDetails}
-  onClose={() => setOpenDetails(false)}
-  data={selectedTransfer}
-/>
 
         <button
           onClick={() => setOpenTransfer(true)}
@@ -69,16 +75,61 @@ const [selectedTransfer, setSelectedTransfer] = useState<Transfer | null>(null);
         </button>
       </div>
 
+      {/* FILTER TABS */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => setFilter("all")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium border
+            ${filter === "all"
+              ? "bg-[#344960] text-white border-[#344960]"
+              : "bg-white text-gray-700 border-gray-300"
+            }`}
+        >
+          All
+        </button>
+
+        <button
+          onClick={() => setFilter("accepted")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium border
+            ${filter === "accepted"
+              ? "bg-green-600 text-white border-green-600"
+              : "bg-white text-gray-700 border-gray-300"
+            }`}
+        >
+          Accepted
+        </button>
+
+        <button
+          onClick={() => setFilter("rejected")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium border
+            ${filter === "rejected"
+              ? "bg-red-600 text-white border-red-600"
+              : "bg-white text-gray-700 border-gray-300"
+            }`}
+        >
+          Rejected
+        </button>
+      </div>
+
+      <TransferDetailsModal
+        open={openDetails}
+        onClose={() => setOpenDetails(false)}
+        data={selectedTransfer}
+      />
+
       {/* Cards */}
-      {transfers.length === 0 ? (
-        <p className="text-sm text-gray-500">No transfer requests yet.</p>
+      {filteredTransfers.length === 0 ? (
+        <p className="text-sm text-gray-500">
+          No transfers found.
+        </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {transfers.map((item, index) => (
+          {filteredTransfers.map((item, index) => (
             <div
               key={index}
               className="relative bg-white border border-gray-200 rounded-xl p-5 space-y-4"
             >
+              {/* Info */}
               <div>
                 <p className="text-xs text-gray-500 mb-1">
                   Transfer Details
@@ -97,83 +148,102 @@ const [selectedTransfer, setSelectedTransfer] = useState<Transfer | null>(null);
                 </p>
               </div>
 
+              {/* Actions */}
               <div className="flex items-center gap-3 pt-2">
-                 {!rejectedIndexes.includes(index) && (
-               <button
-  className="px-4 py-2 rounded-lg bg-green-500 text-white text-sm font-medium"
-  onClick={() => {
-    const newLog = {
-      item: item.itemName,
-      type: "Received",
-      quantity: item.quantity,
-      from: item.destinationLocation,
-      to: item.destinationLocation,
-      issuedBy: item.requestedBy,
-      date: new Date().toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
-      invoice: `INV-${Date.now()}`,
-    };
+                {!item.decision && (
+                  <>
+                    {/* ACCEPT */}
+                    <button
+                      className="px-4 py-2 rounded-lg bg-green-500 text-white text-sm font-medium"
+                      onClick={() => {
+                        const newLog = {
+                          item: item.itemName,
+                          type: "Received",
+                          quantity: item.quantity,
+                          from: item.sourceLocation,
+                          to: item.destinationLocation,
+                          issuedBy: item.requestedBy,
+                          date: new Date().toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          }),
+                          invoice: `INV-${Date.now()}`,
+                        };
 
-    // 🔹 Get existing logs
-    const existingLogs =
-      JSON.parse(localStorage.getItem("stockLogs") || "[]");
+                        const logs = JSON.parse(
+                          localStorage.getItem("stockLogs") || "[]"
+                        );
 
-    // 🔹 Save new log
-    localStorage.setItem(
-      "stockLogs",
-      JSON.stringify([...existingLogs, newLog])
-    );
+                        localStorage.setItem(
+                          "stockLogs",
+                          JSON.stringify([...logs, newLog])
+                        );
 
-    // 🔹 Remove accepted transfer
-    setTransfers((prev) =>
-      prev.filter((_, i) => i !== index)
-    );
-  }}
->
-  Accept
-</button>
- )}
-             {!rejectedIndexes.includes(index) && (
-    <button
-      className="px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-medium"
-      onClick={() => {
-        setRejectedIndexes((prev) => [...prev, index]);
-      }}
-    >
-      Reject
-    </button>
-  )}
+                        setTransfers((prev) =>
+                          prev.map((t, i) =>
+                            t === item
+                              ? { ...t, decision: "accepted" }
+                              : t
+                          )
+                        );
+                      }}
+                    >
+                      Accept
+                    </button>
 
-  {/* REJECT IMAGE */}
- {rejectedIndexes.includes(index) && (
-   <img
-    src="/stamp.webp"
-    alt="Rejected"
-    className="absolute top-6 right-13 h-34 opacity-80 rotate-[-15deg] transition-opacity duration-300"
-  />
-)}
+                    {/* REJECT */}
+                    <button
+                      className="px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-medium"
+                      onClick={() =>
+                        setTransfers((prev) =>
+                          prev.map((t) =>
+                            t === item
+                              ? { ...t, decision: "rejected" }
+                              : t
+                          )
+                        )
+                      }
+                    >
+                      Reject
+                    </button>
+                  </>
+                )}
 
-
-
-                <button 
-                className="px-4 py-2  rounded-lg border border-[#344960] text-[#344960] text-sm font-medium"
+                {/* DETAILS */}
+                <button
+                  className="px-4 py-2 rounded-lg border border-[#344960] text-[#344960] text-sm font-medium"
                   onClick={() => {
-    setSelectedTransfer(item);
-    setOpenDetails(true);
-  }}
+                    setSelectedTransfer(item);
+                    setOpenDetails(true);
+                  }}
                 >
                   Details
                 </button>
               </div>
+
+              {/* STAMPS */}
+              {item.decision === "accepted" && (
+                <img
+                  src="/stamp3.png"
+                  alt="Accepted"
+                  className="absolute top-6 right-6 h-28 opacity-80 rotate-[-10deg]"
+                />
+              )}
+
+              {item.decision === "rejected" && (
+                <img
+                  src="/stamp.webp"
+                  alt="Rejected"
+                  className="absolute top-6 right-6 h-28 opacity-80 rotate-[-15deg]"
+                />
+              )}
             </div>
           ))}
         </div>
       )}
 
-      {/* Modal */}
+      {/* Create Transfer Modal */}
       <TransferRequestModal
         open={openTransfer}
         onClose={() => setOpenTransfer(false)}

@@ -10,52 +10,32 @@ import ModuleCard from "../../component/dashboard/ModuleCard";
 import OnTimeVsDelayed from "../../component/dashboard/OnTimeVsDelayed";
 import ProgressChart from "../../component/dashboard/ProgressChat";
 import ProjectCard from "../../component/dashboard/ProjectCard";
-import CreateProjectModal, {
-  Task,
-  TaskInput,
-} from "../../component/dashboard/CreateProjectModal";
+import CreateProjectModal from "../../component/dashboard/CreateProjectModal";
+import { Project } from "@/src/ts/project";
 
 export default function DashboardPage() {
   const [showModal, setShowModal] = useState(false);
-  const [projects, setProjects] = useState<Task[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
 
-const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
+  // Load projects from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("projects");
+    if (saved) {
+      setProjects(JSON.parse(saved) as Project[]);
+    }
+  }, []);
 
-  // Create project
-  const handleCreate = (task: TaskInput) => {
-    const newProject: Task = {
-      id: crypto.randomUUID(),
-      project: task.project,
-      location: task.location,
-       image: task.image ?? null,
-      createdAt: Date.now(),
-    expiresAt: Date.now() + ONE_WEEK
-
-    };
-
-  
-  const updated = [...projects, newProject];
-  setProjects(updated);
-  localStorage.setItem("tasks", JSON.stringify(updated));
-};
-
- 
+  // Called by modal after it saves to localStorage
+  const handleCreate = (project: Project) => {
+    setProjects((prev) => [...prev, project]);
+  };
 
   // Delete project
   const handleDelete = (id: string) => {
-    const updated = projects.filter((item) => item.id !== id);
+    const updated = projects.filter((p) => p.id !== id);
     setProjects(updated);
-    localStorage.setItem("tasks", JSON.stringify(updated));
+    localStorage.setItem("projects", JSON.stringify(updated));
   };
-  
-useEffect(() => {
-  const savedProjects = localStorage.getItem("tasks");
-
-  if (savedProjects) {
-    setProjects(JSON.parse(savedProjects) as Task[]);
-  }
-}, []);
-
 
   return (
     <div className="p-6 min-h-screen">
@@ -77,7 +57,7 @@ useEffect(() => {
       </div>
 
       {/* Action Cards */}
-     <ActionCards onCreateTask={() => setShowModal(true)} />
+      <ActionCards onCreateTask={() => setShowModal(true)} />
 
       {/* Project Portfolio */}
       <div className="mt-8">
@@ -86,19 +66,16 @@ useEffect(() => {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((item) => (
+          {projects.map((project) => (
             <ProjectCard
-              key={item.id}
-              id={item.id}
-              slug={item.id}
-              project={item.project}
-              location={item.location}
+              key={project.id}
+              project={project}
               onDelete={handleDelete}
             />
           ))}
         </div>
 
-        {/* ✅ MODULE STATUS — FULLY RESTORED */}
+        {/* Module Status */}
         <div className="py-5 mb-4">
           <h1 className="text-black mb-4 font-medium text-[16px]">
             Module status
@@ -113,44 +90,27 @@ useEffect(() => {
                 { label: "15 sites pending", value: "" },
               ]}
             />
-
             <ModuleCard
               title="Design"
               rows={[
                 { label: "Approved", value: 42 },
-                {
-                  label: "Pending-8",
-                  value: "Rev 3.2",
-                  valueColor: "text-gray-500",
-                },
+                { label: "Pending-8", value: "Rev 3.2", valueColor: "text-gray-500" },
               ]}
             />
-
             <ModuleCard
               title="BOQ"
               rows={[
                 { label: "Total Value", value: "₹85.6L" },
-                {
-                  label: "Pending-8",
-                  value: "Issues-3",
-                  valueColor: "text-red-500",
-                },
+                { label: "Pending-8", value: "Issues-3", valueColor: "text-red-500" },
               ]}
             />
-
             <ModuleCard
               title="Orders"
               rows={[
                 { label: "In Progress", value: 18 },
-                {
-                  label: "Delivered-45",
-                  labelColor: "text-green-300",
-                  value: "Late-8",
-                  valueColor: "text-red-500",
-                },
+                { label: "Delivered-45", labelColor: "text-green-300", value: "Late-8", valueColor: "text-red-500" },
               ]}
             />
-
             <ModuleCard
               title="Work Progress"
               progress={65}
@@ -159,20 +119,13 @@ useEffect(() => {
                 { label: "Delays-2", value: "Logs-123" },
               ]}
             />
-
             <ModuleCard
               title="Snag"
               rows={[
                 { label: "Open issues", value: 24 },
-                {
-                  label: "Resolved-45",
-                  labelColor: "text-green-300",
-                  value: "Critical-8",
-                  valueColor: "text-red-500",
-                },
+                { label: "Resolved-45", labelColor: "text-green-300", value: "Critical-8", valueColor: "text-red-500" },
               ]}
             />
-
             <ModuleCard
               title="Finance"
               progress={65}
@@ -181,17 +134,11 @@ useEffect(() => {
                 { label: "Upcoming:8", value: "pending:₹12.4L" },
               ]}
             />
-
             <ModuleCard
               title="Stocks"
               rows={[
                 { label: "Total Items", value: 256 },
-                {
-                  label: "Low-8",
-                  labelColor: "text-yellow-200",
-                  value: "critical-8",
-                  valueColor: "text-red-500",
-                },
+                { label: "Low-8", labelColor: "text-yellow-200", value: "critical-8", valueColor: "text-red-500" },
               ]}
             />
           </div>
@@ -217,4 +164,3 @@ useEffect(() => {
     </div>
   );
 }
-

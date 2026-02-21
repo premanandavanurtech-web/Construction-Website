@@ -1,4 +1,3 @@
-
 "use client";
 
 import Image from "next/image";
@@ -25,81 +24,41 @@ export default function ViewDetailsModal({
   onClose,
 }: Props) {
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="w-[560px] bg-white rounded-2xl p-6 shadow-xl">
-        
-        {/* Header */}
-        <h2 className="text-xl font-semibold text-gray-900">
-          View Details
-        </h2>
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+      <div className="bg-white w-[560px] rounded-2xl p-6">
+        <h2 className="text-xl text-black font-semibold">View Details</h2>
 
-        {/* Title */}
-        <p className="mt-3 text-lg font-medium text-gray-900">
-          {title}
-        </p>
+        <p className="mt-3 font-medium">{title}</p>
+        <p className="text-sm text-gray-800">{location}</p>
+        <p className="text-sm text-black mt-2">{description}</p>
 
-        {/* Location */}
-        <p className="text-sm text-gray-500 mt-1">
-          {location}
-        </p>
-
-        {/* Description */}
-        <p className="mt-2 text-sm text-gray-600">
-          {description}
-        </p>
-
-        {/* Meta Info */}
         <div className="grid grid-cols-3 gap-6 mt-6 text-sm">
           <div>
             <p className="text-gray-500">Assigned To</p>
-            <p className="font-medium text-gray-900 mt-1">
-              {assignedTo}
-            </p>
+            <p className="text-black font-medium">{assignedTo}</p>
           </div>
-
           <div>
             <p className="text-gray-500">Deadline</p>
-            <p className="font-medium text-gray-900 mt-1">
-              {deadline}
-            </p>
+            <p className="font-medium text-black">{deadline}</p>
           </div>
-
           <div>
             <p className="text-gray-500">Reported On</p>
-            <p className="font-medium text-gray-900 mt-1">
-              {reportedOn}
-            </p>
+            <p className="font-medium text-black">{reportedOn}</p>
           </div>
         </div>
 
-        {/* Images */}
-        <div className="mt-6">
-          <p className="text-sm text-gray-500 mb-3">
-            Images
-          </p>
-
-          <div className="grid grid-cols-2 gap-4">
-            {images.map((img, index) => (
-              <div
-                key={index}
-                className="relative h-[130px] rounded-xl overflow-hidden bg-gray-100"
-              >
-                <Image
-                  src={img}
-                  alt={`Image ${index + 1}`}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            ))}
-          </div>
+        <div className="grid grid-cols-2 gap-4 mt-6">
+          {images.map((img, i) => (
+            <div key={i} className="relative h-32 rounded-xl overflow-hidden">
+              <Image src={img} alt="" fill className="object-cover" />
+            </div>
+          ))}
         </div>
 
-        {/* Footer */}
-        <div className="flex justify-end mt-8">
+        <div className="flex justify-end mt-6">
           <button
             onClick={onClose}
-            className="px-8 py-2 rounded-lg border border-[#5B6B7F] text-[#344960] hover:bg-gray-100 transition"
+            className="px-6 text-black py-2 border rounded-lg"
           >
             Close
           </button>

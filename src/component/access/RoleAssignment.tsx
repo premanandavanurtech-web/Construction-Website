@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import EditUserPermissionsModal from "./EditUserPermissionsModal";
-
+import AddRoleModal from "../dashboard/AddRoleModal";
+const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
 type Role = {
   title: string;
   users: number;
@@ -10,59 +11,72 @@ type Role = {
   modules: string[];
 };
 
-const roles: Role[] = [
-  {
-    title: "SuperAdmin",
-    users: 1,
-    description:
-      "Full system access with user management capabilities",
-    modules: ["All Modules"],
-  },
-  {
-    title: "Admin",
-    users: 2,
-    description:
-      "Full system access with user management capabilities",
-    modules: ["All Modules"],
-  },
-  {
-    title: "Manager",
-    users: 2,
-    description:
-      "Access to vendor and labour management with reporting",
-    modules: ["Labour Management", "Vendor Management"],
-  },
-  {
-    title: "Supervisor",
-    users: 2,
-    description:
-      "Site-level operations and attendance management",
-    modules: ["Labour Management", "Vendor Management"],
-  },
-  {
-    title: "Site Engineer",
-    users: 2,
-    description:
-      "Site-level operations and attendance management",
-    modules: ["Labour Management", "Vendor Management"],
-  },
-];
-
 export default function RoleAssignment() {
   const [openEdit, setOpenEdit] = useState(false);
-    const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+
+  const [roles, setRoles] = useState<Role[]>(() => {
+  if (typeof window === "undefined") return [];
+
+  const raw = localStorage.getItem("roles");
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw);
+
+    // ⏰ Expired
+    if (Date.now() > parsed.expiresAt) {
+      localStorage.removeItem("roles");
+      return [];
+    }
+
+    return parsed.data || [];
+  } catch {
+    return [];
+  }
+});
+  const [openAddRole, setOpenAddRole] = useState(false);
+useEffect(() => {
+  localStorage.setItem(
+    "roles",
+    JSON.stringify({
+      data: roles,
+      expiresAt: Date.now() + ONE_WEEK,
+    })
+  );
+}, [roles]);
   return (
     <div className="bg-white border rounded-xl p-5 space-y-4">
       {/* Header */}
-      <div>
+      <div className="flex justify-between">
         <h2 className="text-lg font-semibold text-black">
           Role Definitions & Default Permissions
+          <p className="text-sm text-zinc-500">
+            Configure role-based access controls
+          </p>
         </h2>
-        <p className="text-sm text-zinc-500">
-          Configure role-based access controls
-        </p>
+        <button
+          onClick={() => setOpenAddRole(true)}
+          className="px-5 h-9 rounded-lg bg-[#344960] text-white text-sm"
+        >
+          Add Role
+        </button>
       </div>
-
+      <AddRoleModal
+        open={openAddRole}
+        onClose={() => setOpenAddRole(false)}
+       onSave={(role) => {
+  setRoles((prev) => [
+    ...prev,
+    {
+      title: role.title,
+      description: role.description,
+      modules: role.modules,
+      users: 0,
+    },
+  ]);
+}}
+      />
       {/* Roles */}
       <div className="space-y-4">
         {roles.map((role, i) => (
@@ -79,9 +93,7 @@ export default function RoleAssignment() {
                 </span>
               </div>
 
-              <p className="text-sm text-zinc-500">
-                {role.description}
-              </p>
+              <p className="text-sm text-zinc-500">{role.description}</p>
 
               <div>
                 <p className="text-xs font-medium text-black  mb-1">
@@ -106,19 +118,20 @@ export default function RoleAssignment() {
                 View
               </button>
               <button
-              onClick={() => {
-                      setSelectedUser(role);
-                      setOpenEdit(true);
-                    }}
-               className="px-8 h-9 rounded-lg  border text-black text-sm">
+                onClick={() => {
+                  setSelectedUser(role);
+                  setOpenEdit(true);
+                }}
+                className="px-8 h-9 rounded-lg  border text-black text-sm"
+              >
                 Add User
               </button>
             </div>
-             <EditUserPermissionsModal
-                    open={openEdit}
-                    onClose={() => setOpenEdit(false)}
-                    user={selectedUser}
-                  />
+            <EditUserPermissionsModal
+              open={openEdit}
+              onClose={() => setOpenEdit(false)}
+              user={selectedUser}
+            />
           </div>
         ))}
       </div>

@@ -7,9 +7,8 @@ import CurrentInventoryLayout from "@/src/component/project/stock/CurrentInvento
 import UpdateStockModal from "@/src/component/project/stock/UpdateStockModal";
 import CreateCategoryModal from "@/src/component/project/stock/CreateCategoryModal";
 import CreateLocationModal from "@/src/component/project/stock/CreateLocationModal";
-import StockFilterModal, {
-  StockFilters,
-} from "@/src/component/project/stock/StockFilterModal";
+import StockFilterModal, { StockFilters } from "@/src/component/project/stock/StockFilterModal";
+import StockDetails from "@/src/component/project/stock/StockDetails";
 
 import { StockItem } from "@/src/ts/stock";
 
@@ -34,6 +33,7 @@ export default function StockClient({ projectId }: { projectId: string }) {
 
   const [categories, setCategories] = useState<string[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
+  const [selectedStock, setSelectedStock] = useState<StockItem | null>(null); // ✅
 
   const loadStock = () => {
     const now = Date.now();
@@ -76,10 +76,7 @@ export default function StockClient({ projectId }: { projectId: string }) {
 
     window.addEventListener("categories-updated", handleCategoriesUpdated);
     return () =>
-      window.removeEventListener(
-        "categories-updated",
-        handleCategoriesUpdated
-      );
+      window.removeEventListener("categories-updated", handleCategoriesUpdated);
   }, [projectId]);
 
   const filteredItems = items.filter((item) => {
@@ -90,20 +87,15 @@ export default function StockClient({ projectId }: { projectId: string }) {
     if (filters.minStock && item.min > Number(filters.minStock)) return false;
     if (filters.currentStock && item.current > Number(filters.currentStock))
       return false;
-
     if (filters.createdOn) {
-      const itemDate = new Date(item.createdAt)
-        .toISOString()
-        .split("T")[0];
+      const itemDate = new Date(item.createdAt).toISOString().split("T")[0];
       if (itemDate !== filters.createdOn) return false;
     }
-
     return true;
   });
 
   return (
     <>
-      {/* Filters */}
       <StockFilterModal
         open={openFilter}
         onClose={() => setOpenFilter(false)}
@@ -115,7 +107,6 @@ export default function StockClient({ projectId }: { projectId: string }) {
         locations={locations}
       />
 
-      {/* Edit */}
       <UpdateStockModal
         open={openEdit}
         item={selected}
@@ -126,7 +117,6 @@ export default function StockClient({ projectId }: { projectId: string }) {
         }}
       />
 
-      {/* Category */}
       <CreateCategoryModal
         open={openCategory}
         projectId={projectId}
@@ -137,34 +127,43 @@ export default function StockClient({ projectId }: { projectId: string }) {
         }}
       />
 
-      {/* Location */}
       <CreateLocationModal
         open={openLocation}
         projectId={projectId}
         onClose={() => setOpenLocation(false)}
       />
 
+      {/* ✅ Single layout block only */}
       {/* Table */}
-      <CurrentInventoryLayout
-        search={search}
-        onSearchChange={setSearch}
-        onOpenFilter={() => setOpenFilter(true)}
-        onOpenCategory={() => setOpenCategory(true)}
-        onOpenLocation={() => setOpenLocation(true)}
-      >
-        <CurrentStock
-          projectId={projectId}
-          stocks={filteredItems}
-          onEdit={(item) => {
-            setSelected(item);
-            setOpenEdit(true);
-          }}
-          onDelete={(item) => {
-            localStorage.removeItem(`stock-${projectId}-${item.name}`);
-            loadStock();
-          }}
+      {!selectedStock ? (
+        <CurrentInventoryLayout
+          search={search}
+          onSearchChange={setSearch}
+          onOpenFilter={() => setOpenFilter(true)}
+          onOpenCategory={() => setOpenCategory(true)}
+          onOpenLocation={() => setOpenLocation(true)}
+        >
+          <CurrentStock
+            projectId={projectId}
+            stocks={filteredItems}
+            onView={(item) => setSelectedStock(item)}
+            onEdit={(item) => {
+              setSelected(item);
+              setOpenEdit(true);
+            }}
+            onDelete={(item) => {
+              localStorage.removeItem(`stock-${projectId}-${item.name}`);
+              loadStock();
+            }}
+          />
+        </CurrentInventoryLayout>
+      ) : (
+        // ✅ Full width — outside the table layout entirely
+        <StockDetails
+          item={selectedStock}
+          onBack={() => setSelectedStock(null)}
         />
-      </CurrentInventoryLayout>
+      )}
     </>
   );
 }

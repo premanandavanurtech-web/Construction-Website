@@ -66,7 +66,7 @@ export default function CreateLocationModal({
           {/* 👀 View All */}
           <button
             onClick={() => setOpenAll(true)}
-          className="px-6 h-8 ml-68 relative -top-13  rounded-lg bg-[#344960] text-white text-sm  hover:underline"
+          className="px-6 h-8 ml-68 relative -top-9  rounded-lg bg-[#344960] text-white text-sm  hover:underline"
           >
             View All 
           </button>
@@ -88,7 +88,7 @@ export default function CreateLocationModal({
           <div className="flex justify-between mt-6">
             <button
               onClick={onClose}
-              className="px-6 h-10 rounded-lg border text-sm"
+              className="px-6 text-black h-10 rounded-lg border text-sm"
             >
               Cancel
             </button>

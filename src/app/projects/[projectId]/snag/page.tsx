@@ -1,18 +1,17 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import ReportIssueModal from "@/src/component/project/snag/ReportlssueModal";
 import SnagCard from "@/src/component/project/snag/SnagCard";
 import SnagHeader from "@/src/component/project/snag/SnagHeader";
 import SnagStats from "@/src/component/project/snag/SnagStats";
 import ViewDetailsModal from "@/src/component/project/snag/ViewDetailsModal";
 import ViewImagesModal from "@/src/component/project/snag/viewImagesModal";
-import { useState } from "react";
 
-
-
-
-/* ✅ Type for a Snag */
+/* ✅ Snag Type */
 type Snag = {
+  id: string;
   title: string;
   location: string;
   description: string;
@@ -25,65 +24,90 @@ type Snag = {
 };
 
 export default function SnagPage() {
+  const [snags, setSnags] = useState<Snag[]>([]);
   const [openReport, setOpenReport] = useState(false);
+
   const [openImages, setOpenImages] = useState(false);
   const [images, setImages] = useState<string[]>([]);
+
   const [openDetails, setOpenDetails] = useState(false);
   const [selectedSnag, setSelectedSnag] = useState<Snag | null>(null);
 
-  const snagData: Snag = {
-    title: "Crack in external wall plaster",
-    location: "2nd Floor",
-    description:
-      "Visible crack on north-facing wall, approximately 2 feet long",
-    assignedTo: "Masonry Team",
-    deadline: "Oct 12, 2026",
-    reportedOn: "Oct 6, 2026",
-    priority: "high",
-    status: "pending",
-    images: [
-      "https://images.pexels.com/photos/12326415/pexels-photo-12326415.jpeg",
-      "https://images.pexels.com/photos/4040621/pexels-photo-4040621.jpeg",
-    ],
+  /* 🔹 Load snags from localStorage */
+  useEffect(() => {
+    const stored = JSON.parse(
+      localStorage.getItem("snagIssues") || "[]"
+    );
+    setSnags(stored);
+  }, []);
+
+  /* 🔹 Persist snags */
+  useEffect(() => {
+    localStorage.setItem("snagIssues", JSON.stringify(snags));
+  }, [snags]);
+
+  /* 🔹 ADD NEW SNAG (🔥 FIX) */
+  const addSnag = (snag: Snag) => {
+    setSnags((prev) => [...prev, snag]);
+  };
+
+  /* 🔹 Update status */
+  const updateStatus = (
+    id: string,
+    status: Snag["status"]
+  ) => {
+    setSnags((prev) =>
+      prev.map((s) =>
+        s.id === id ? { ...s, status } : s
+      )
+    );
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 space-y-4">
       {/* Header */}
       <SnagHeader onReport={() => setOpenReport(true)} />
       <SnagStats />
 
-      {/* Snag Card */}
-      <SnagCard
-        {...snagData}
-        onViewImages={(imgs) => {
-          setImages(imgs);
-          setOpenImages(true);
-        }}
-        onViewDetails={() => {
-          setSelectedSnag(snagData);
-          setOpenDetails(true);
-        }}
-      />
+      {/* Snag Cards */}
+      {snags.length === 0 ? (
+        <p className="text-sm text-gray-500">
+          No issues reported yet.
+        </p>
+      ) : (
+        snags.map((snag) => (
+          <SnagCard
+            key={snag.id}
+            {...snag}
+            onViewImages={(imgs) => {
+              setImages(imgs);
+              setOpenImages(true);
+            }}
+            onViewDetails={() => {
+              setSelectedSnag(snag);
+              setOpenDetails(true);
+            }}
+            onStartWork={() =>
+              updateStatus(snag.id, "in-progress")
+            }
+            onMarkResolved={() =>
+              updateStatus(snag.id, "resolved")
+            }
+          />
+        ))
+      )}
 
       {/* Report Issue Modal */}
       <ReportIssueModal
         open={openReport}
         onClose={() => setOpenReport(false)}
+        onSubmit={addSnag}
       />
 
-      {/* Images Modal */}
-      {openImages && (
-        <ViewImagesModal
-          images={images}
-          onClose={() => {
-            setOpenImages(false);
-            setImages([]);
-          }}
-        />
-      )}
+      {/* View Images Modal */}
+     
 
-      {/* Details Modal */}
+      {/* View Details Modal */}
       {openDetails && selectedSnag && (
         <ViewDetailsModal
           {...selectedSnag}

@@ -1,9 +1,10 @@
+import PreExistingStructureForm from '@/src/component/project/reece/PreExistingStructure'
 import React from 'react'
 
 const page = () => {
   return (
     <div>
-      pre exiting page
+     <PreExistingStructureForm/>
     </div>
   )
 }

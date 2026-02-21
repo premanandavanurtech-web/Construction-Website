@@ -132,7 +132,7 @@ const handleSubmit = () => {
         <div className="flex justify-between mt-6">
           <button
             onClick={onClose}
-            className="px-6 h-10 rounded-lg border text-sm"
+            className="px-6 text-black h-10 rounded-lg border text-sm"
           >
             Cancel
           </button>

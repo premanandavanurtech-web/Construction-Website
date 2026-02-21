@@ -1,49 +1,66 @@
 "use client";
 
 import { Search } from "lucide-react";
+import { useState } from "react";
 
-const requests = [
+type Request = {
+  name: string;
+  email: string;
+  role: string;
+  module: string;
+  date: string;
+  status: "pending" | "approved" | "rejected";
+};
+
+const initialRequests: Request[] = [
   {
     name: "Rajesh Kumar",
     email: "rajesh.kumar@example.com",
     role: "Supervisor",
     module: "Attendance Tracking",
     date: "2025-10-28",
+    status: "pending",
   },
   {
-    name: "Rajesh Kumar",
-    email: "rajesh.kumar@example.com",
-    role: "Supervisor",
-    module: "Attendance Tracking",
+    name: "Amit Sharma",
+    email: "amit.sharma@example.com",
+    role: "Manager",
+    module: "Vendor Management",
     date: "2025-10-28",
+    status: "pending",
   },
   {
-    name: "Rajesh Kumar",
-    email: "rajesh.kumar@example.com",
-    role: "Supervisor",
-    module: "Attendance Tracking",
+    name: "Suresh Patil",
+    email: "suresh.patil@example.com",
+    role: "Site Engineer",
+    module: "Labour Management",
     date: "2025-10-28",
-  },
-  {
-    name: "Rajesh Kumar",
-    email: "rajesh.kumar@example.com",
-    role: "Supervisor",
-    module: "Attendance Tracking",
-    date: "2025-10-28",
-  },
-  {
-    name: "Rajesh Kumar",
-    email: "rajesh.kumar@example.com",
-    role: "Supervisor",
-    module: "Attendance Tracking",
-    date: "2025-10-28",
+    status: "pending",
   },
 ];
 
 export default function AccessRequest() {
+  const [requests, setRequests] = useState<Request[]>(initialRequests);
+
+  const approveRequest = (index: number) => {
+    setRequests((prev) =>
+      prev.map((item, i) =>
+        i === index ? { ...item, status: "approved" } : item
+      )
+    );
+  };
+
+  const rejectRequest = (index: number) => {
+    setRequests((prev) =>
+      prev.map((item, i) =>
+        i === index ? { ...item, status: "rejected" } : item
+      )
+    );
+  };
+
   return (
     <div className="bg-white border rounded-2xl p-5 space-y-4">
-      
+
       {/* Header */}
       <div>
         <h2 className="text-lg font-semibold text-gray-900">
@@ -54,7 +71,7 @@ export default function AccessRequest() {
         </p>
       </div>
 
-      {/* Search + Filter */}
+      {/* Search */}
       <div className="flex items-center gap-4">
         <div className="relative flex-1">
           <Search
@@ -62,7 +79,7 @@ export default function AccessRequest() {
             className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
           />
           <input
-            placeholder="Search Users by Name,Mail......"
+            placeholder="Search Users by Name, Mail..."
             className="w-full h-10 pl-10 pr-4 border border-gray-300 text-black rounded-lg text-sm focus:outline-none"
           />
         </div>
@@ -76,12 +93,12 @@ export default function AccessRequest() {
       <div className="overflow-hidden rounded-lg border border-gray-200">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200 text-gray-700 text-lg font-medium">
+            <tr className="border-b border-gray-200 text-gray-700 text-sm font-medium">
               <th className="px-4 py-3 text-left">User</th>
-              <th className=" py-3 text-left">Current Role</th>
-              <th className=" py-3 text-left">Requested Module</th>
-              <th className=" py-3 text-left">Requested Date</th>
-              <th className=" py-3 text-center">Actions</th>
+              <th className="px-4 py-3 text-left">Current Role</th>
+              <th className="px-4 py-3 text-left">Requested Module</th>
+              <th className="px-4 py-3 text-left">Requested Date</th>
+              <th className="px-4 py-3 text-center">Actions</th>
             </tr>
           </thead>
 
@@ -92,7 +109,7 @@ export default function AccessRequest() {
                 className="border-b border-gray-200 last:border-none"
               >
                 {/* User */}
-                <td className="px-4 py-3 ">
+                <td className="px-4 py-3">
                   <div className="font-medium text-gray-900">
                     {item.name}
                   </div>
@@ -108,12 +125,35 @@ export default function AccessRequest() {
                 {/* Actions */}
                 <td className="px-4 py-3">
                   <div className="flex justify-center gap-2">
-                    <button className="px-3 py-1 text-xs rounded bg-green-100 text-green-700 border border-green-300">
-                      Approve
-                    </button>
-                    <button className="px-5 py-1 text-xs rounded bg-red-100 text-red-600 border border-red-300">
-                      Reject
-                    </button>
+
+                    {/* Approve Button */}
+                    {item.status !== "rejected" && (
+                      <button
+                        onClick={() => approveRequest(i)}
+                        className={`px-3 py-1 text-xs rounded border ${
+                          item.status === "approved"
+                            ? "bg-green-600 text-white border-green-600"
+                            : "bg-green-100 text-green-700 border-green-300"
+                        }`}
+                      >
+                        Approve
+                      </button>
+                    )}
+
+                    {/* Reject Button */}
+                    {item.status !== "approved" && (
+                      <button
+                        onClick={() => rejectRequest(i)}
+                        className={`px-5 py-1 text-xs rounded border ${
+                          item.status === "rejected"
+                            ? "bg-red-600 text-white border-red-600"
+                            : "bg-red-100 text-red-600 border-red-300"
+                        }`}
+                      >
+                        Reject
+                      </button>
+                    )}
+
                   </div>
                 </td>
               </tr>
