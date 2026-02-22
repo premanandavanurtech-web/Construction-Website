@@ -10,6 +10,7 @@ type Props = {
   onOpenFilter: () => void;
   onOpenCategory: () => void;
   onOpenLocation?: () => void;
+  filtersSlot?: React.ReactNode;
 };
 
 export default function CurrentInventoryLayout({
@@ -19,6 +20,7 @@ export default function CurrentInventoryLayout({
   onOpenFilter,
   onOpenCategory,
   onOpenLocation,
+  filtersSlot
 }: Props) {
   return (
     <div className="bg-white rounded-2xl border w-full px-6 py-4 space-y-4">
@@ -33,13 +35,21 @@ export default function CurrentInventoryLayout({
             className="flex-1 outline-none text-sm text-gray-600"
           />
         </div>
-        <button
+         <button
           onClick={onOpenFilter}
           className="h-11 px-6 rounded-lg border text-sm"
         >
           Filters
         </button>
       </div>
+
+      {/* ✅ INLINE FILTERS (BELOW SEARCH, ABOVE TABLE) */}
+      {filtersSlot && (
+        <div className="border rounded-lg bg-gray-50 p-4">
+          {filtersSlot}
+        </div>
+      )}
+     
 
       {/* Table */}
       <div className="overflow-x-auto text-gray-300 p-3 text-center border rounded-xl">

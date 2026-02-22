@@ -7,8 +7,26 @@ type Props = {
   onBack: () => void;
 };
 
+/* ✅ Human-friendly timestamp */
+function formatTime(timestamp: number) {
+  const diff = Date.now() - timestamp;
+
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+
+  if (seconds < 10) return "Just now";
+  if (seconds < 60) return `${seconds}s ago`;
+  if (minutes < 60) return `${minutes} min ago`;
+  if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+
+  // After 24 hours → show date
+  return new Date(timestamp).toLocaleDateString();
+}
+
 export default function StockDetails({ item, onBack }: Props) {
-     if (!item) return null;
+  if (!item) return null;
+
   return (
     <div className="bg-white border rounded-xl p-6">
       {/* Back */}
@@ -69,8 +87,9 @@ export default function StockDetails({ item, onBack }: Props) {
             {item.history?.length ? (
               item.history.map((h, i) => (
                 <tr key={i} className="border-t">
+                  {/* ✅ UPDATED HERE */}
                   <td className="px-3 py-2">
-                    {new Date(h.timestamp).toLocaleString()}
+                    {formatTime(h.timestamp)}
                   </td>
                   <td className="px-3 py-2">{item.name}</td>
                   <td className="px-3 py-2">{h.quantityUsed} Bags</td>

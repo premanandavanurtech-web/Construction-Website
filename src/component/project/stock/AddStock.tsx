@@ -77,7 +77,8 @@ const handleSubmit = () => {
     min: minQty,
     location: location || "Warehouse A",
     status: currentQty <= minQty ? "Low Stock" : "In stock",
-    updated: "Just now",                     // ✅ REQUIRED
+    updated: "Just now",
+    vendor: vendor.trim(),                          // ✅ REQUIRED
     createdAt: now,
     updatedAt: now,
     expiresAt: now + ONE_WEEK,

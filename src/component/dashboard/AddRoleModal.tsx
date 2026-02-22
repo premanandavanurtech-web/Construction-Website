@@ -76,7 +76,7 @@ export default function AddRoleModal({ open, onClose, onSave }: Props) {
             className="w-full text-black h-10 px-3 rounded-md bg-gray-100 text-sm outline-none"
           />
         </div>
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <label className="text-sm font-medium text-black mb-1 block">
             User Name
           </label>
@@ -86,7 +86,7 @@ export default function AddRoleModal({ open, onClose, onSave }: Props) {
             placeholder="e.g. Manager"
             className="w-full text-black h-10 px-3 rounded-md bg-gray-100 text-sm outline-none"
           />
-        </div>
+        </div> */}
 
         {/* Role Description */}
         <div className="mb-4">
@@ -102,7 +102,7 @@ export default function AddRoleModal({ open, onClose, onSave }: Props) {
         </div>
 
         {/* Module Input */}
-        <div className="mb-3">
+        {/* <div className="mb-3">
           <label className="text-sm font-medium text-black mb-1 block">
             Module Name
           </label>
@@ -121,7 +121,7 @@ export default function AddRoleModal({ open, onClose, onSave }: Props) {
               Add
             </button>
           </div>
-        </div>
+        </div> */}
 
         {/* Module Chips */}
         {modules.length > 0 && (

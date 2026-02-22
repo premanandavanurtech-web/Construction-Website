@@ -12,7 +12,7 @@ const tabs = [
   { label: "Foundation Details", slug: "Foundation" },
   { label: "Vegetation", slug: "vegetation" },
   { label: "Pre-Existing Structure", slug: "Pre-existing" },
-];
+];             
 
 export default function ReeceLayout({
   children,

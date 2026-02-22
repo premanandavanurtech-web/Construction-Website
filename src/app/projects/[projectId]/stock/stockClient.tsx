@@ -11,6 +11,7 @@ import StockFilterModal, { StockFilters } from "@/src/component/project/stock/St
 import StockDetails from "@/src/component/project/stock/StockDetails";
 
 import { StockItem } from "@/src/ts/stock";
+import EditStockModal from "@/src/component/project/stock/EditStockModal";
 
 export default function StockClient({ projectId }: { projectId: string }) {
   const [items, setItems] = useState<StockItem[]>([]);
@@ -84,7 +85,11 @@ export default function StockClient({ projectId }: { projectId: string }) {
       return false;
     if (filters.category && item.category !== filters.category) return false;
     if (filters.location && item.location !== filters.location) return false;
-    if (filters.minStock && item.min > Number(filters.minStock)) return false;
+if (
+    filters.minStock &&
+    item.current > Number(filters.minStock)
+  )
+    return false;
     if (filters.currentStock && item.current > Number(filters.currentStock))
       return false;
     if (filters.createdOn) {
@@ -96,26 +101,16 @@ export default function StockClient({ projectId }: { projectId: string }) {
 
   return (
     <>
-      <StockFilterModal
-        open={openFilter}
-        onClose={() => setOpenFilter(false)}
-        onApply={(f) => {
-          setFilters(f);
-          setOpenFilter(false);
-        }}
-        categories={categories}
-        locations={locations}
-      />
 
-      <UpdateStockModal
-        open={openEdit}
-        item={selected}
-        projectId={projectId}
-        onClose={() => {
-          setOpenEdit(false);
-          loadStock();
-        }}
-      />
+   <EditStockModal
+  open={openEdit}
+  projectId={projectId}
+  item={selected}
+  onClose={() => {
+    setOpenEdit(false);
+    loadStock(); // 🔄 refresh after save
+  }}
+/>
 
       <CreateCategoryModal
         open={openCategory}
@@ -139,10 +134,22 @@ export default function StockClient({ projectId }: { projectId: string }) {
         <CurrentInventoryLayout
           search={search}
           onSearchChange={setSearch}
-          onOpenFilter={() => setOpenFilter(true)}
+    onOpenFilter={() => setOpenFilter(prev => !prev)}
           onOpenCategory={() => setOpenCategory(true)}
           onOpenLocation={() => setOpenLocation(true)}
-        >
+          filtersSlot={
+    openFilter && (
+      <StockFilterModal
+        filters={filters}
+        onChange={setFilters}
+        categories={categories}
+        locations={locations}
+      />
+    )
+  }
+>
+        
+          
           <CurrentStock
             projectId={projectId}
             stocks={filteredItems}
