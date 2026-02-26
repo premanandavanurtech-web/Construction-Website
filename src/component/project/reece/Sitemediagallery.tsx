@@ -80,9 +80,21 @@ export default function SiteMediaGallery() {
           </div>
         )}
 
-        <button className="text-sm px-4 py-2 border border-gray-300 rounded-lg">
-          Comments (2)
-        </button>
+        <div className="flex justify-between items-center">
+  <button className="text-sm px-4 py-2 border border-gray-300 rounded-lg">
+    Comments (2)
+  </button>
+
+  <button
+    onClick={() => {
+      // later: upload / save logic
+      console.log("Submitted files:", files);
+    }}
+    className="text-sm px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition"
+  >
+    Submit
+  </button>
+</div>
       </div>
 
       {/* ================= MODAL ================= */}

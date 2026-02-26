@@ -15,31 +15,28 @@ export default function ProjectLayout({
   const [projectName, setProjectName] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!projectId) return; // 🔒 VERY IMPORTANT
+    if (!projectId) return;
 
-    const stored = localStorage.getItem("tasks");
+    const stored = localStorage.getItem("projects"); // ✅ was "tasks"
     if (!stored) return;
 
     const projects = JSON.parse(stored);
-    const currentProject = projects.find(
-      (p: any) => p.id === projectId
-    );
+    const currentProject = projects.find((p: any) => p.id === projectId);
 
     if (currentProject) {
-      setProjectName(currentProject.project);
+      setProjectName(currentProject.name ?? currentProject.title ?? currentProject.project ?? "Unknown");
+      // ✅ tries all possible field names
     } else {
       setProjectName("Unknown Project");
     }
   }, [projectId]);
 
-  // 🔒 Prevent rendering until projectId is ready
   if (!projectId) {
     return <div className="p-6">Loading project...</div>;
   }
 
   return (
     <div className="p-6">
-      {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <span>Projects</span>

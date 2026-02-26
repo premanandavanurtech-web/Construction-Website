@@ -1,4 +1,4 @@
-import StockClient from "../stockClient";
+import StockClient from "../../../../../component/project/stock/stockClient";
 
 
 export default async function CurrentInventoryPage({

@@ -1,224 +1,340 @@
 "use client";
 
 import { Search } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
+const ACCESS_REQUEST_KEY = "accessRequests";
+const USERS_KEY = "users";
 
 type Request = {
-  name: string;
   email: string;
+  name?: string;
+  phone?: string;
   role: string;
-  module: string;
-  date: string;
+  modules: string[];
+  date?: string;
+  createdAt?: number;
   status: "pending" | "approved" | "rejected";
 };
 
-const initialRequests: Request[] = [
-  {
-    name: "Rajesh Kumar",
-    email: "rajesh.kumar@example.com",
-    role: "Supervisor",
-    module: "Attendance Tracking",
-    date: "2025-10-28",
-    status: "pending",
-  },
-  {
-    name: "Amit Sharma",
-    email: "amit.sharma@example.com",
-    role: "Manager",
-    module: "Vendor Management",
-    date: "2025-10-28",
-    status: "pending",
-  },
-  {
-    name: "Suresh Patil",
-    email: "suresh.patil@example.com",
-    role: "Site Engineer",
-    module: "Labour Management",
-    date: "2025-10-28",
-    status: "pending",
-  },
-];
+/* ================= STORAGE HELPERS ================= */
+
+function loadRequests(): Request[] {
+  const raw = localStorage.getItem(ACCESS_REQUEST_KEY);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Date.now() > parsed.expiresAt) {
+      localStorage.removeItem(ACCESS_REQUEST_KEY);
+      return [];
+    }
+    return parsed.data || [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRequests(data: Request[]) {
+  localStorage.setItem(
+    ACCESS_REQUEST_KEY,
+    JSON.stringify({ data, expiresAt: Date.now() + ONE_WEEK })
+  );
+}
+
+function loadUsers(): any[] {
+  const raw = localStorage.getItem(USERS_KEY);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed.data || [];
+  } catch {
+    return [];
+  }
+}
+
+function saveUsers(data: any[]) {
+  localStorage.setItem(
+    USERS_KEY,
+    JSON.stringify({ data, expiresAt: Date.now() + ONE_WEEK })
+  );
+}
+
+/* ================= MODULE CELL ================= */
+
+const VISIBLE_COUNT = 2;
+
+function ModuleCell({ modules }: { modules: string[] }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!modules || modules.length === 0) return <span className="text-gray-400">—</span>;
+
+  const visible = expanded ? modules : modules.slice(0, VISIBLE_COUNT);
+  const remaining = modules.length - VISIBLE_COUNT;
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      {visible.map((m, i) => (
+        <span
+          key={i}
+          className="inline-block px-2 py-0.5 text-[11px] bg-gray-100 text-gray-700 rounded-md whitespace-nowrap"
+        >
+          {m}
+        </span>
+      ))}
+      {!expanded && remaining > 0 && (
+        <button
+          onClick={() => setExpanded(true)}
+          className="inline-block px-2 py-0.5 text-[11px] bg-blue-50 text-blue-600 rounded-md whitespace-nowrap hover:bg-blue-100"
+        >
+          +{remaining} more
+        </button>
+      )}
+      {expanded && modules.length > VISIBLE_COUNT && (
+        <button
+          onClick={() => setExpanded(false)}
+          className="inline-block px-2 py-0.5 text-[11px] bg-gray-50 text-gray-500 rounded-md whitespace-nowrap hover:bg-gray-100"
+        >
+          Show less
+        </button>
+      )}
+    </div>
+  );
+}
+
+/* ================= COMPONENT ================= */
 
 export default function AccessRequest() {
-  const [requests, setRequests] = useState<Request[]>(initialRequests);
-
+  const [requests, setRequests] = useState<Request[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({ role: "", module: "", date: "" });
 
-  const [filters, setFilters] = useState({
-    role: "",
-    module: "",
-    date: "",
-  });
+  useEffect(() => {
+    setRequests(loadRequests());
+    const refresh = () => setRequests(loadRequests());
+    window.addEventListener("access-request-refresh", refresh);
+    return () => window.removeEventListener("access-request-refresh", refresh);
+  }, []);
+
+  /* ================= ACTIONS ================= */
 
   const approveRequest = (index: number) => {
-    setRequests((prev) =>
-      prev.map((item, i) =>
-        i === index ? { ...item, status: "approved" } : item
-      )
+    const updatedRequests = requests.map((r, i) =>
+      i === index ? { ...r, status: "approved" } : r
     );
+    const approved = updatedRequests[index];
+    setRequests(updatedRequests);
+    saveRequests(updatedRequests);
+
+    const users = loadUsers();
+    const exists = users.some((u) => u.email === approved.email);
+    if (exists) return;
+
+    const newUser = {
+      email: approved.email,
+      name: approved.name || "",
+      role: approved.role,
+      access: approved.modules.reduce(
+        (acc: Record<string, boolean>, m: string) => {
+          acc[`module-${m}`] = true;
+          return acc;
+        },
+        {}
+      ),
+      createdAt: Date.now(),
+    };
+
+    saveUsers([...users, newUser]);
+    window.dispatchEvent(new Event("users-updated"));
   };
 
   const rejectRequest = (index: number) => {
-    setRequests((prev) =>
-      prev.map((item, i) =>
-        i === index ? { ...item, status: "rejected" } : item
-      )
+    const updated = requests.map((r, i) =>
+      i === index ? { ...r, status: "rejected" } : r
     );
+    setRequests(updated);
+    saveRequests(updated);
   };
 
-  // ✅ SEARCH + FILTER LOGIC
+  /* ================= FILTER OPTIONS ================= */
+
+  const uniqueRoles = useMemo(
+    () => [...new Set(requests.map((r) => r.role).filter(Boolean))],
+    [requests]
+  );
+
+  const uniqueModules = useMemo(
+    () => [...new Set(requests.flatMap((r) => r.modules || []))],
+    [requests]
+  );
+
   const filteredRequests = useMemo(() => {
-    return requests.filter((item) => {
-      const matchesSearch =
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.email.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const matchesRole =
-        !filters.role || item.role === filters.role;
-
-      const matchesModule =
-        !filters.module || item.module === filters.module;
-
-      const matchesDate =
-        !filters.date || item.date === filters.date;
-
-      return matchesSearch && matchesRole && matchesModule && matchesDate;
+    const s = searchTerm.toLowerCase();
+    return requests.filter((r) => {
+      const name = (r.name || "").toLowerCase();
+      const email = (r.email || "").toLowerCase();
+      const reqDate =
+        r.date ||
+        (r.createdAt ? new Date(r.createdAt).toISOString().split("T")[0] : "");
+      return (
+        (name.includes(s) || email.includes(s)) &&
+        (!filters.role || r.role === filters.role) &&
+        (!filters.module || (r.modules || []).includes(filters.module)) &&
+        (!filters.date || reqDate === filters.date)
+      );
     });
   }, [requests, searchTerm, filters]);
 
-  return (
-    <div className="bg-white border rounded-2xl p-5 space-y-4">
+  /* ================= UI ================= */
 
-      {/* Header */}
+  return (
+    <div className="bg-white text-black border border-gray-200 rounded-xl p-5 space-y-4">
       <div>
-        <h2 className="text-lg font-semibold text-gray-900">
-          Pending Access Requests
-        </h2>
-        <p className="text-sm text-gray-500">
-          Review and approve user access requests
-        </p>
+        <h2 className="text-base font-bold">Pending Access Requests</h2>
+        <p className="text-sm text-gray-500">Approve or reject access requests</p>
       </div>
 
-      {/* Search + Filter Button */}
-      <div className="flex items-center gap-4">
+      {/* Search + Filters */}
+      <div className="flex gap-3">
         <div className="relative flex-1">
-          <Search
-            size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search Users by Name, Mail..."
-            className="w-full h-10 pl-10 pr-4 border border-gray-300 text-black rounded-lg text-sm"
+            placeholder="Search by name or email"
+            className="w-full h-10 pl-9 border rounded-lg text-sm"
           />
         </div>
-
         <button
-          onClick={() => setShowFilters((prev) => !prev)}
-          className="h-10 px-5 border border-[#344960] rounded-lg text-sm font-medium text-[#344960]"
+          onClick={() => setShowFilters((p) => !p)}
+          className="h-10 px-5 border rounded-lg text-sm text-gray-700 hover:bg-gray-50"
         >
-          Filters
+          {showFilters ? "Hide Filters" : "Filters"}
         </button>
       </div>
 
-      {/* ✅ FILTER BOX (shows on click) */}
+      {/* Filter row */}
       {showFilters && (
-        <div className="border rounded-lg p-4 bg-gray-50 grid grid-cols-3 gap-4">
+        <div className="flex gap-3 flex-wrap">
           <select
-            className="h-10 border rounded px-3 text-sm"
             value={filters.role}
-            onChange={(e) =>
-              setFilters({ ...filters, role: e.target.value })
-            }
+            onChange={(e) => setFilters((f) => ({ ...f, role: e.target.value }))}
+            className="border h-9 rounded px-2 text-sm"
           >
             <option value="">All Roles</option>
-            <option value="Supervisor">Supervisor</option>
-            <option value="Manager">Manager</option>
-            <option value="Site Engineer">Site Engineer</option>
+            {uniqueRoles.map((r) => <option key={r}>{r}</option>)}
           </select>
 
           <select
-            className="h-10 border rounded px-3 text-sm"
             value={filters.module}
-            onChange={(e) =>
-              setFilters({ ...filters, module: e.target.value })
-            }
+            onChange={(e) => setFilters((f) => ({ ...f, module: e.target.value }))}
+            className="border h-9 rounded px-2 text-sm"
           >
             <option value="">All Modules</option>
-            <option value="Attendance Tracking">Attendance Tracking</option>
-            <option value="Vendor Management">Vendor Management</option>
-            <option value="Labour Management">Labour Management</option>
+            {uniqueModules.map((m) => <option key={m}>{m}</option>)}
           </select>
 
           <input
             type="date"
-            className="h-10 border rounded px-3 text-sm"
             value={filters.date}
-            onChange={(e) =>
-              setFilters({ ...filters, date: e.target.value })
-            }
+            onChange={(e) => setFilters((f) => ({ ...f, date: e.target.value }))}
+            className="border h-9 rounded px-2 text-sm"
           />
+
+          <button
+            onClick={() => setFilters({ role: "", module: "", date: "" })}
+            className="text-sm text-zinc-500 underline"
+          >
+            Clear
+          </button>
         </div>
       )}
 
       {/* Table */}
-      <div className="overflow-hidden rounded-lg border border-gray-200">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b text-gray-700 font-medium">
-              <th className="px-4 py-3 text-left">User</th>
-              <th className="px-4 py-3 text-left">Current Role</th>
-              <th className="px-4 py-3 text-left">Requested Module</th>
-              <th className="px-4 py-3 text-left">Requested Date</th>
-              <th className="px-4 py-3 text-center">Actions</th>
-            </tr>
-          </thead>
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b">
+            <th className="text-left py-3 w-40">User</th>
+            <th className="text-left py-3 w-28">Role</th>
+            <th className="text-left py-3">Modules</th>
+            <th className="text-left py-3 w-28">Date</th>
+            <th className="text-right py-3 w-36">Actions</th>
+          </tr>
+        </thead>
 
-          <tbody>
-            {filteredRequests.map((item, i) => (
-              <tr key={i} className="border-b last:border-none">
-                <td className="px-4 py-3">
-                  <div className="font-medium">{item.name}</div>
-                  <div className="text-xs text-gray-500">
-                    {item.email}
+        <tbody>
+          {filteredRequests.map((r, i) => {
+            const realIndex = requests.indexOf(r);
+            const date =
+              r.date ||
+              (r.createdAt
+                ? new Date(r.createdAt).toISOString().split("T")[0]
+                : "—");
+
+            return (
+              <tr key={i} className="border-b hover:bg-gray-50 align-top">
+                {/* User */}
+                <td className="py-3 pr-3">
+                  <div className="font-medium">{r.name || r.email.split("@")[0]}</div>
+                  <div className="text-xs text-gray-400">{r.email}</div>
+                </td>
+
+                {/* Role */}
+                <td className="py-3 pr-3 text-gray-700">{r.role}</td>
+
+                {/* Modules — badge style with expand */}
+                <td className="py-3 pr-3">
+                  <ModuleCell modules={r.modules || []} />
+                </td>
+
+                {/* Date */}
+                <td className="py-3 pr-3 text-gray-700 whitespace-nowrap">{date}</td>
+
+                {/* Actions */}
+                <td className="py-3 text-right">
+                  <div className="flex justify-end gap-2">
+                    {r.status === "pending" && (
+                      <>
+                        <button
+                          onClick={() => approveRequest(realIndex)}
+                          className="px-4 py-1 text-xs border border-green-500 text-green-600 rounded hover:bg-green-50"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => rejectRequest(realIndex)}
+                          className="px-4 py-1 text-xs border border-red-500 text-red-500 rounded hover:bg-red-50"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+                    {r.status === "approved" && (
+                      <span className="px-4 py-1 text-xs rounded bg-green-100 text-green-700 border">
+                        Approved
+                      </span>
+                    )}
+                    {r.status === "rejected" && (
+                      <span className="px-4 py-1 text-xs rounded bg-red-100 text-red-600">
+                        Rejected
+                      </span>
+                    )}
                   </div>
                 </td>
-                <td className="px-4 py-3">{item.role}</td>
-                <td className="px-4 py-3">{item.module}</td>
-                <td className="px-4 py-3">{item.date}</td>
-                <td className="px-4 py-3 text-center space-x-2">
-                  {item.status !== "rejected" && (
-                    <button
-                      onClick={() => approveRequest(i)}
-                      className="px-3 py-1 text-xs rounded bg-green-100 text-green-700 border"
-                    >
-                      Approve
-                    </button>
-                  )}
-                  {item.status !== "approved" && (
-                    <button
-                      onClick={() => rejectRequest(i)}
-                      className="px-3 py-1 text-xs rounded bg-red-100 text-red-600 border"
-                    >
-                      Reject
-                    </button>
-                  )}
-                </td>
               </tr>
-            ))}
+            );
+          })}
 
-            {filteredRequests.length === 0 && (
-              <tr>
-                <td colSpan={5} className="text-center py-6 text-gray-500">
-                  No matching records found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+          {filteredRequests.length === 0 && (
+            <tr>
+              <td colSpan={5} className="py-8 text-center text-gray-400">
+                No access requests
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   );
 }

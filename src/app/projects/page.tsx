@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import CreateProjectModal from "../../component/dashboard/CreateProjectModal";
-import ProjectCard from "../../component/dashboard/ProjectCard";
+
 import { Project } from "@/src/ts/project";
+import ProjectSectionCard from "@/src/component/project/ProjectSectionCard";
 
 export default function ProjectPage() {
   const [isOpen, setIsOpen] = useState(false);
@@ -22,12 +23,12 @@ export default function ProjectPage() {
     setProjects((prev) => [...prev, project]);
   };
 
-  // Delete project
-  const handleDelete = (id: string) => {
-    const updated = projects.filter((p) => p.id !== id);
-    setProjects(updated);
-    localStorage.setItem("projects", JSON.stringify(updated));
-  };
+  // // Delete project
+  // const handleDelete = (id: string) => {
+  //   const updated = projects.filter((p) => p.id !== id);
+  //   setProjects(updated);
+  //   localStorage.setItem("projects", JSON.stringify(updated));
+  // };
 
   return (
     <div className="p-6">
@@ -46,10 +47,10 @@ export default function ProjectPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {projects.map((project) => (
-          <ProjectCard
+          <ProjectSectionCard
             key={project.id}
             project={project}
-            onDelete={handleDelete}
+            
           />
         ))}
       </div>

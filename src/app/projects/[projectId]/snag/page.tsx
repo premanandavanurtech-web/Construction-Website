@@ -41,17 +41,17 @@ export default function SnagPage() {
     setSnags(stored);
   }, []);
 
-  /* 🔹 Persist snags */
+  /* 🔹 Persist snags to localStorage */
   useEffect(() => {
     localStorage.setItem("snagIssues", JSON.stringify(snags));
   }, [snags]);
 
-  /* 🔹 ADD NEW SNAG (🔥 FIX) */
+  /* 🔹 Add new snag */
   const addSnag = (snag: Snag) => {
     setSnags((prev) => [...prev, snag]);
   };
 
-  /* 🔹 Update status */
+  /* 🔹 Update snag status */
   const updateStatus = (
     id: string,
     status: Snag["status"]
@@ -67,9 +67,11 @@ export default function SnagPage() {
     <div className="p-6 space-y-4">
       {/* Header */}
       <SnagHeader onReport={() => setOpenReport(true)} />
-      <SnagStats />
 
-      {/* Snag Cards */}
+      {/* ✅ REAL STATS */}
+      <SnagStats issues={snags} />
+
+      {/* Snag List */}
       {snags.length === 0 ? (
         <p className="text-sm text-gray-500">
           No issues reported yet.
@@ -105,7 +107,15 @@ export default function SnagPage() {
       />
 
       {/* View Images Modal */}
-     
+      {openImages && (
+        <ViewImagesModal
+          images={images}
+          onClose={() => {
+            setOpenImages(false);
+            setImages([]);
+          }}
+        />
+      )}
 
       {/* View Details Modal */}
       {openDetails && selectedSnag && (

@@ -1,16 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import AllCategoriesModal from "./ViewAllCategoriesModal  ";
-
+import AllCategoriesModal from "./ViewAllCategoriesModal";
 
 type Props = {
   open: boolean;
   onClose: () => void;
   projectId: string;
-  onSubmit?: (data: { name: string; description: string }) => void;
-
-  // 👇 ADD THIS (optional)
+  onSubmit?: () => void;
   onlyCategory?: string;
 };
 
@@ -25,11 +22,17 @@ export default function CreateCategoryModal({
   const [description, setDescription] = useState("");
   const [openAll, setOpenAll] = useState(false);
 
-  if (!open) return null;
+  // ✅ NO early return here — moved to conditional render below
 
   const handleSubmit = () => {
-    if (!name.trim()) {
+    const trimmed = name.trim();
+    if (!trimmed) {
       alert("Category name is required");
+      return;
+    }
+
+    if (!projectId) {
+      alert("Project not selected. Please reopen the modal.");
       return;
     }
 
@@ -38,15 +41,18 @@ export default function CreateCategoryModal({
       localStorage.getItem(key) || "[]"
     );
 
-    if (existing.includes(name)) {
+    const exists = existing.some(
+      (c) => c.toLowerCase() === trimmed.toLowerCase()
+    );
+
+    if (exists) {
       alert("Category already exists");
       return;
     }
 
-    const updated = [...existing, name];
-    localStorage.setItem(key, JSON.stringify(updated));
+    localStorage.setItem(key, JSON.stringify([...existing, trimmed]));
 
-    onSubmit?.({ name, description });
+    onSubmit?.(); // ✅ triggers loadCategories() in AddStock
 
     setName("");
     setDescription("");
@@ -54,54 +60,58 @@ export default function CreateCategoryModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="w-[420px] bg-white rounded-2xl p-6 shadow-xl">
-        <h2 className="text-lg font-semibold text-gray-900 mb-5">
-          Create Category
-        </h2>
+    <>
+      {/* ✅ Conditional render instead of early return so AllCategoriesModal stays mounted */}
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="relative w-[420px] bg-white rounded-2xl p-6 shadow-xl">
+            <h2 className="text-lg font-semibold text-gray-900 mb-5">
+              Create Category
+            </h2>
 
-        <button
-          onClick={() => setOpenAll(true)}
-       className="px-6 h-8 ml-68 relative -top-11  rounded-lg bg-[#344960] text-white text-sm  hover:underline"
-        >
-          View All
-        </button>
+            <button
+              onClick={() => setOpenAll(true)}
+              className="absolute right-6 top-6 px-4 h-8 rounded-lg bg-[#344960] text-white text-xs hover:bg-[#2a3a4a]"
+            >
+              View All
+            </button>
 
-        {/* Form */}
-        <div className="space-y-3 text-sm text-gray-900">
-          <Input label="Category Name" value={name} onChange={setName} />
-          <Textarea
-            label="Description"
-            value={description}
-            onChange={setDescription}
-          />
+            <div className="space-y-3 text-sm text-gray-900">
+              <Input label="Category Name" value={name} onChange={setName} />
+              <Textarea
+                label="Description"
+                value={description}
+                onChange={setDescription}
+              />
+            </div>
+
+            <div className="flex justify-between mt-6">
+              <button
+                onClick={onClose}
+                className="px-6 h-10 rounded-lg border text-sm text-black hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                className="px-6 h-10 rounded-lg bg-[#344960] text-white text-sm hover:bg-[#2a3a4a]"
+              >
+                Create Category
+              </button>
+            </div>
+          </div>
         </div>
+      )}
 
-        <div className="flex justify-between mt-6">
-          <button
-            onClick={onClose}
-            className="px-6 text-black h-10 rounded-lg border text-sm"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="px-6 h-10 rounded-lg bg-[#344960] text-white text-sm"
-          >
-            Create Category
-          </button>
-        </div>
-      </div>
-
-      {/* 👇 PASS FILTER DOWN */}
+      {/* ✅ AllCategoriesModal is always rendered so it doesn't lose state */}
       <AllCategoriesModal
         open={openAll}
         projectId={projectId}
         onClose={() => setOpenAll(false)}
-        onChange={() => onSubmit?.({ name: "", description: "" })}
+        onChange={() => onSubmit?.()} // ✅ no argument passed
         onlyCategory={onlyCategory}
       />
-    </div>
+    </>
   );
 }
 
@@ -122,7 +132,7 @@ function Input({
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full h-10 rounded-lg bg-gray-100 px-3 outline-none"
+        className="w-full h-10 rounded-lg bg-gray-100 px-3 outline-none focus:ring-1 focus:ring-[#344960]"
       />
     </div>
   );
@@ -144,7 +154,7 @@ function Textarea({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={4}
-        className="w-full text-black rounded-lg bg-gray-100 px-3 py-2 outline-none resize-none"
+        className="w-full rounded-lg bg-gray-100 px-3 py-2 outline-none resize-none focus:ring-1 focus:ring-[#344960]"
       />
     </div>
   );

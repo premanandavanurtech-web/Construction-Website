@@ -15,7 +15,7 @@ type FormState = {
   assignedTo: string;
   deadline: string;
   priority: "high" | "medium" | "low" | "";
-  image: string;
+   images: string[]; // ✅ multiple images
 };
 
 export default function ReportIssueModal({
@@ -30,7 +30,7 @@ export default function ReportIssueModal({
     assignedTo: "",
     deadline: "",
     priority: "",
-    image: "",
+     images: [],
   });
 
   if (!open) return null;
@@ -45,18 +45,21 @@ export default function ReportIssueModal({
   };
 
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  if (!e.target.files) return;
 
+  const files = Array.from(e.target.files);
+
+  files.forEach((file) => {
     const reader = new FileReader();
     reader.onloadend = () => {
       setForm((prev) => ({
         ...prev,
-        image: reader.result as string,
+        images: [...prev.images, reader.result as string],
       }));
     };
     reader.readAsDataURL(file);
-  };
+  });
+};
 
   const handleSubmit = () => {
     if (!form.title || !form.location) return;
@@ -75,7 +78,7 @@ export default function ReportIssueModal({
         day: "numeric",
         year: "numeric",
       }),
-      images: form.image ? [form.image] : [],
+     images: form.images,
     };
 
     onSubmit(newSnag);
@@ -88,7 +91,7 @@ export default function ReportIssueModal({
       assignedTo: "",
       deadline: "",
       priority: "",
-      image: "",
+      images: [],
     });
 
     onClose();
@@ -174,6 +177,7 @@ export default function ReportIssueModal({
             <input
               type="file"
               hidden
+               multiple 
               accept="image/*"
               onChange={handleImage}
             />
