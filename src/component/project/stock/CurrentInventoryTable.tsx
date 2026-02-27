@@ -1,4 +1,3 @@
-// src/components/stock/CurrentInventoryLayout.tsx
 "use client";
 
 import { Search } from "lucide-react";
@@ -20,7 +19,7 @@ export default function CurrentInventoryLayout({
   onOpenFilter,
   onOpenCategory,
   onOpenLocation,
-  filtersSlot
+  filtersSlot,
 }: Props) {
   return (
     <div className="bg-white rounded-2xl border w-full px-6 py-4 space-y-4">
@@ -35,7 +34,8 @@ export default function CurrentInventoryLayout({
             className="flex-1 outline-none text-sm text-gray-600"
           />
         </div>
-         <button
+
+        <button
           onClick={onOpenFilter}
           className="h-11 px-6 rounded-lg border text-sm"
         >
@@ -43,23 +43,25 @@ export default function CurrentInventoryLayout({
         </button>
       </div>
 
-      {/* ✅ INLINE FILTERS (BELOW SEARCH, ABOVE TABLE) */}
+      {/* Inline Filters */}
       {filtersSlot && (
         <div className="border rounded-lg bg-gray-50 p-4">
           {filtersSlot}
         </div>
       )}
-     
 
       {/* Table */}
-      <div className="overflow-x-auto text-gray-300 p-3 text-center border rounded-xl">
+      <div className="overflow-x-auto p-3 text-center border rounded-xl">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b">
             <tr className="text-left text-gray-600">
               <th className="px-6 py-3">Item Name</th>
               <th className="px-6 py-3">
                 Category{" "}
-                <button onClick={onOpenCategory} className="text-blue-600 font-bold">
+                <button
+                  onClick={onOpenCategory}
+                  className="text-blue-600 font-bold"
+                >
                   +
                 </button>
               </th>
@@ -68,7 +70,10 @@ export default function CurrentInventoryLayout({
               <th className="px-6 py-3">
                 Location{" "}
                 {onOpenLocation && (
-                  <button onClick={onOpenLocation} className="text-blue-600 font-bold">
+                  <button
+                    onClick={onOpenLocation}
+                    className="text-blue-600 font-bold"
+                  >
                     +
                   </button>
                 )}

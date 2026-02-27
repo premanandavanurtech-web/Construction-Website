@@ -1,15 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import CreateCategoryModal from "./CreateCategoryModal";
+import CreateLocationModal from "./CreateLocationModal";
 
 type Props = {
   open: boolean;
   onClose: () => void;
   projectId: string;
 };
-
-
-
 
 export default function AddStock({ open, onClose, projectId }: Props) {
   const [itemName, setItemName] = useState("");
@@ -23,181 +22,234 @@ export default function AddStock({ open, onClose, projectId }: Props) {
   const [categories, setCategories] = useState<string[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
 
-  /* 🔄 Load categories */
-useEffect(() => {
-  if (!open || !projectId) return;
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(false);
 
-  const stored = JSON.parse(
-    localStorage.getItem(`categories-${projectId}`) || "[]"
-  );
+  const loadCategories = () => {
+    if (!projectId) return;
+    try {
+      const stored = JSON.parse(
+        localStorage.getItem(`categories-${projectId}`) || "[]"
+      );
+      setCategories(Array.isArray(stored) ? stored : []);
+    } catch {
+      setCategories([]);
+    }
+  };
 
-  console.log("Loaded categories:", stored); // 🔍 debug
-  setCategories(stored);
-}, [open, projectId]);
-
-
-  /* 🔄 Load locations */
-  useEffect(() => {
-    const loadLocations = () => {
+  const loadLocations = () => {
+    if (!projectId) return;
+    try {
       const stored = JSON.parse(
         localStorage.getItem(`locations-${projectId}`) || "[]"
       );
-      setLocations(stored);
-    };
-
-    loadLocations();
-    window.addEventListener("locations-updated", loadLocations);
-
-    return () =>
-      window.removeEventListener("locations-updated", loadLocations);
-  }, [projectId]);
-
-  if (!open) return null;
-const handleSubmit = () => {
-  if (!itemName || !quantity || !minStock) {
-    alert("Item name, quantity and minimum stock are required");
-    return;
-  }
-
-  if (!category) {
-    alert("Please select a category");
-    return;
-  }
-
-  const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
-  const now = Date.now();
-
-  const currentQty = Number(quantity);
-  const minQty = Number(minStock);
-
-  const stockData = {
-    name: itemName.trim(),
-    category: category.trim().toLowerCase(), // ✅ NORMALIZED
-    current: currentQty,
-    min: minQty,
-    location: location || "Warehouse A",
-    status: currentQty <= minQty ? "Low Stock" : "In stock",
-    updated: "Just now",
-    vendor: vendor.trim(),                          // ✅ REQUIRED
-    createdAt: now,
-    updatedAt: now,
-    expiresAt: now + ONE_WEEK,
+      setLocations(Array.isArray(stored) ? stored : []);
+    } catch {
+      setLocations([]);
+    }
   };
 
-  localStorage.setItem(
-    `stock-${projectId}-${itemName}`,
-    JSON.stringify(stockData)
-  );
+  // Load both when modal opens
+  useEffect(() => {
+    if (!open || !projectId) return;
+    loadCategories();
+    loadLocations();
+  }, [open, projectId]);
 
-  onClose();
-};
+  // Keep locations in sync with external updates (e.g. AllLocationsModal deletes)
+  useEffect(() => {
+    if (!projectId) return;
+    window.addEventListener("locations-updated", loadLocations);
+    return () => window.removeEventListener("locations-updated", loadLocations);
+  }, [projectId]);
 
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!open) {
+      setItemName("");
+      setQuantity("");
+      setUnit("");
+      setVendor("");
+      setCategory("");
+      setLocation("");
+      setMinStock("");
+    }
+  }, [open]);
 
+  if (!open) return null;
+
+  const handleSubmit = () => {
+    if (!itemName.trim() || !quantity || !minStock) {
+      alert("Item name, quantity and minimum stock are required.");
+      return;
+    }
+    if (!category) {
+      alert("Please select a category.");
+      return;
+    }
+
+    const now = Date.now();
+    const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
+    const currentQty = Number(quantity);
+    const minQty = Number(minStock);
+
+    const stockData = {
+      name: itemName.trim(),
+    category: category.trim(),
+      unit: unit.trim(),
+      current: currentQty,
+      min: minQty,
+      location: location || "Warehouse A",
+      status: currentQty <= minQty ? "Low Stock" : "In stock",
+      updated: "Just now",
+      vendor: vendor.trim(),
+      createdAt: now,
+      updatedAt: now,
+      expiresAt: now + ONE_WEEK,
+    };
+
+    const stockKey = `stock-${projectId}-${itemName.trim().toLowerCase().replace(/\s+/g, "-")}`;
+    localStorage.setItem(stockKey, JSON.stringify(stockData));
+    window.dispatchEvent(new Event("stock-updated"));
+    onClose();
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="w-[420px] h-[700px] bg-white rounded-2xl p-4 shadow-lg">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Add New Stock Entry
-        </h2>
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div className="w-[420px] max-h-[700px] overflow-y-auto bg-white rounded-2xl p-6 shadow-lg">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Add New Stock Entry
+          </h2>
 
-        <div className="space-y-1 text-black text-sm">
-          <Input label="Item Name" value={itemName} onChange={setItemName} />
-          <Input label="Quantity" value={quantity} onChange={setQuantity} />
-          <Input label="Unit" value={unit} onChange={setUnit} />
-          <Input label="Vendor" value={vendor} onChange={setVendor} />
+          <div className="space-y-3 text-black text-sm">
+            <Input label="Item Name" value={itemName} onChange={setItemName} />
+            <Input label="Quantity" value={quantity} onChange={setQuantity} type="number" />
+            <Input label="Unit (e.g. kg, pcs)" value={unit} onChange={setUnit} />
+            <Input label="Vendor" value={vendor} onChange={setVendor} />
 
-          {/* Category */}
-          <Select
-            label="Category"
-            value={category}
-            onChange={setCategory}
-            options={categories}
-          />
+            {/* Category */}
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-xs text-gray-600">Category</label>
+                <button
+                  onClick={() => setShowCategoryModal(true)}
+                  className="text-xs text-[#344960] hover:underline"
+                >
+                  + Create New
+                </button>
+              </div>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full h-10 rounded-lg bg-gray-100 px-3 outline-none"
+              >
+                <option value="">Select a category</option>
+                {categories.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          {/* Location */}
-          <Select
-            label="Storage Location"
-            value={location}
-            onChange={setLocation}
-            options={locations.length ? locations : ["Warehouse A"]}
-          />
+            {/* Location */}
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-xs text-gray-600">Storage Location</label>
+                <button
+                  onClick={() => setShowLocationModal(true)}
+                  className="text-xs text-[#344960] hover:underline"
+                >
+                  + Create New
+                </button>
+              </div>
+              <select
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="w-full h-10 rounded-lg bg-gray-100 px-3 outline-none"
+              >
+                <option value="">Select a location</option>
+                {locations.length > 0 ? (
+                  locations.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))
+                ) : (
+                  <option value="Warehouse A">Warehouse A</option>
+                )}
+              </select>
+            </div>
 
-          <Input
-            label="Minimum Stock Level"
-            value={minStock}
-            onChange={setMinStock}
-          />
-        </div>
+            <Input
+              label="Minimum Stock Level"
+              value={minStock}
+              onChange={setMinStock}
+              type="number"
+            />
+          </div>
 
-        <div className="flex justify-between mt-6">
-          <button
-            onClick={onClose}
-            className="px-6 text-black h-10 rounded-lg border text-sm"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="px-6 h-10 rounded-lg bg-[#344960] text-white text-sm"
-          >
-            Add Stock
-          </button>
+          <div className="flex justify-between mt-6">
+            <button
+              onClick={onClose}
+              className="px-6 text-black h-10 rounded-lg border text-sm hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              className="px-6 h-10 rounded-lg bg-[#344960] text-white text-sm hover:bg-[#2a3a4a]"
+            >
+              Add Stock
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+
+      <CreateCategoryModal
+        open={showCategoryModal}
+        onClose={() => setShowCategoryModal(false)}
+        projectId={projectId}
+        onSubmit={() => {
+          loadCategories();
+          setShowCategoryModal(false);
+        }}
+      />
+
+      <CreateLocationModal
+        open={showLocationModal}
+        onClose={() => setShowLocationModal(false)}
+        projectId={projectId}
+        onSubmit={() => {
+          loadLocations();
+          setShowLocationModal(false);
+        }}
+      />
+    </>
   );
 }
-
-/* ---------- Inputs ---------- */
 
 function Input({
   label,
   value,
   onChange,
+  type = "text",
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
+  type?: string;
 }) {
   return (
     <div>
       <label className="block text-xs text-gray-600 mb-1">{label}</label>
       <input
+        type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full h-10 rounded-lg bg-gray-100 px-3 outline-none"
+        className="w-full h-10 rounded-lg bg-gray-100 px-3 outline-none focus:ring-1 focus:ring-[#344960]"
       />
-    </div>
-  );
-}
-
-function Select({
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  options: string[];
-}) {
-  return (
-    <div>
-      <label className="block text-xs text-gray-600 mb-1">{label}</label>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full h-10 rounded-lg bg-gray-100 px-3 outline-none"
-      >
-        <option value="">Select</option>
-        {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </select>
     </div>
   );
 }

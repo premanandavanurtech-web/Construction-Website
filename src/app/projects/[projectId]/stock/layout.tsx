@@ -3,19 +3,19 @@ import StockHeader from "@/src/component/project/stock/StockHeader";
 import StockStats from "@/src/component/project/stock/StockStats";
 import StockSubTabs from "@/src/component/project/stock/StockSubTabs";
 
-export default function StockLayout({
+export default async function StockLayout({
   children,
   params,
 }: {
   children: React.ReactNode;
   params: Promise<{ projectId: string }>;
 }) {
-  const { projectId } = React.use(params); // ✅ REQUIRED
+  const { projectId } = await params; // ✅ unwrap projectId from URL
 
   return (
     <div>
-      <StockHeader projectId={projectId} />
-      <StockStats />
+      <StockHeader projectId={projectId} /> {/* ✅ now passed */}
+      <StockStats projectId={projectId} />
       <StockSubTabs />
 
       <div className="mt-6">{children}</div>

@@ -71,6 +71,7 @@ export default function DashboardPage() {
               key={project.id}
               project={project}
               onDelete={handleDelete}
+              
             />
           ))}
         </div>

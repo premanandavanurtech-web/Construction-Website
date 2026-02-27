@@ -5,7 +5,17 @@ import { useEffect, useState } from "react";
 const STORAGE_KEY = "roomEvaluation";
 const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
 
-function createRoom(name = "New Room") {
+type Room = {
+  id: string;
+  name: string;
+  floor: { material: string; condition: string; notes: string };
+  ceiling: { height: string; material: string; condition: string; notes: string };
+  utilities: { electrical: string; plumbing: string; ventilation: string; notes: string };
+  document: string | null;
+  completed: boolean;
+};
+
+function createRoom(name = "New Room"): Room {
   return {
     id: crypto.randomUUID(),
     name,
@@ -18,7 +28,7 @@ function createRoom(name = "New Room") {
 }
 
 export default function RoomByRoomEvaluation() {
-  const [rooms, setRooms] = useState([createRoom("Living Room")]);
+  const [rooms, setRooms] = useState<Room[]>([createRoom("Living Room")]);
 
   /* ---------------- LOAD FROM STORAGE ---------------- */
   useEffect(() => {
@@ -41,18 +51,18 @@ export default function RoomByRoomEvaluation() {
   const progress = Math.round((completed / total) * 100) || 0;
 
   /* ---------------- HELPERS ---------------- */
-  const updateRoom = (id, updater) =>
+  const updateRoom = (id: string, updater: (r: Room) => Room) =>
     setRooms((prev) =>
       prev.map((r) => (r.id === id ? updater(r) : r))
     );
 
-  const handleFile = (e, id) => {
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>, id: string) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = () =>
-      updateRoom(id, (r) => ({ ...r, document: reader.result }));
+      updateRoom(id, (r) => ({ ...r, document: reader.result as string }));
     reader.readAsDataURL(file);
   };
 
@@ -186,10 +196,7 @@ export default function RoomByRoomEvaluation() {
                     onChange={(v) =>
                       updateRoom(room.id, (r) => ({
                         ...r,
-                        utilities: {
-                          ...r.utilities,
-                          electrical: v,
-                        },
+                        utilities: { ...r.utilities, electrical: v },
                       }))
                     }
                   />
@@ -199,10 +206,7 @@ export default function RoomByRoomEvaluation() {
                     onChange={(v) =>
                       updateRoom(room.id, (r) => ({
                         ...r,
-                        utilities: {
-                          ...r.utilities,
-                          plumbing: v,
-                        },
+                        utilities: { ...r.utilities, plumbing: v },
                       }))
                     }
                   />
@@ -215,10 +219,7 @@ export default function RoomByRoomEvaluation() {
                     onChange={(v) =>
                       updateRoom(room.id, (r) => ({
                         ...r,
-                        utilities: {
-                          ...r.utilities,
-                          ventilation: v,
-                        },
+                        utilities: { ...r.utilities, ventilation: v },
                       }))
                     }
                   />
@@ -263,9 +264,7 @@ export default function RoomByRoomEvaluation() {
         {/* FOOTER */}
         <div className="flex justify-between items-center mt-6">
           <button
-            onClick={() =>
-              setRooms((r) => [...r, createRoom()])
-            }
+            onClick={() => setRooms((r) => [...r, createRoom()])}
             className="px-4 py-2 border rounded-xl text-sm bg-white hover:bg-gray-50"
           >
             + Add Room / Space
@@ -285,33 +284,29 @@ export default function RoomByRoomEvaluation() {
 
 /* ================= SMALL UI COMPONENTS ================= */
 
-function Section({ title, children }) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="border border-gray-200 rounded-xl p-5 mb-4">
-      <p className="text-sm font-medium text-gray-600 mb-3">
-        {title}
-      </p>
+      <p className="text-sm font-medium text-gray-600 mb-3">{title}</p>
       {children}
     </div>
   );
 }
 
-function TwoCol({ children }) {
+function TwoCol({ children }: { children: React.ReactNode }) {
   return <div className="grid grid-cols-2 gap-4 mb-3">{children}</div>;
 }
 
-function Field({ label, children }) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-xs font-medium text-gray-500">
-        {label}
-      </span>
+      <span className="text-xs font-medium text-gray-500">{label}</span>
       {children}
     </div>
   );
 }
 
-function Input({ placeholder, onChange }) {
+function Input({ placeholder, onChange }: { placeholder?: string; onChange: (v: string) => void }) {
   return (
     <input
       className="w-full h-10 bg-gray-100 rounded-lg px-3 text-sm text-gray-700 outline-none focus:bg-gray-200"
@@ -321,35 +316,27 @@ function Input({ placeholder, onChange }) {
   );
 }
 
-function UploadBox({ uploaded, onChange }) {
+function UploadBox({ uploaded, onChange }: { uploaded: boolean; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
   return (
     <label className="flex flex-col items-center justify-center h-28 rounded-xl border-2 border-dashed border-gray-300 cursor-pointer mt-3 gap-2">
       <input type="file" className="hidden" onChange={onChange} />
       {uploaded ? (
-        <span className="text-green-600 text-sm font-medium">
-          ✓ File uploaded
-        </span>
+        <span className="text-green-600 text-sm font-medium">✓ File uploaded</span>
       ) : (
         <>
-          <span className="text-sm font-medium text-gray-700">
-            Upload A File Or Drag And Drop
-          </span>
-          <span className="text-xs text-gray-400">
-            Png, Jpg, Gif Upto 50MB
-          </span>
+          <span className="text-sm font-medium text-gray-700">Upload A File Or Drag And Drop</span>
+          <span className="text-xs text-gray-400">Png, Jpg, Gif Upto 50MB</span>
         </>
       )}
     </label>
   );
 }
 
-function StatCard({ label, value }) {
+function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4">
       <p className="text-xs text-gray-400 mb-1">{label}</p>
-      <p className="text-2xl font-semibold text-gray-900">
-        {value}
-      </p>
+      <p className="text-2xl font-semibold text-gray-900">{value}</p>
     </div>
   );
 }

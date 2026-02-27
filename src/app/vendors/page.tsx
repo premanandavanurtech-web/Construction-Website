@@ -1,11 +1,5 @@
-import React from 'react'
+import { redirect } from "next/navigation";
 
-const VendorsPage = () => {
-  return (
-    <div>
-      
-    </div>
-  )
+export default function VendorsHome() {
+  redirect("/vendors/database");
 }
-
-export default VendorsPage

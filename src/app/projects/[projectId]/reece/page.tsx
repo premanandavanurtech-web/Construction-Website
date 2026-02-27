@@ -1,14 +1,10 @@
+"use client";
 
-import React from 'react'
+import { redirect } from "next/navigation";
 
 const ReecePage = () => {
-  return (
-   <div className="p-6 bg-white">
-      
+  // redirect to default tab
+  redirect("reece/PhotoVideoLibrary");
+};
 
-      {/* Content based on active tab */}
-    </div>
-  )
-}
-
-export default ReecePage
+export default ReecePage;

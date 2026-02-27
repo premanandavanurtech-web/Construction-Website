@@ -12,16 +12,29 @@ export default function AccessPage() {
     "request" | "permissions" | "roles"
   >("request");
 
+  // Each time we switch TO the request tab, bump this key
+  // so React unmounts + remounts <AccessRequest />, forcing a fresh localStorage read
+  const [requestKey, setRequestKey] = useState(0);
+
+  const handleTabChange = (tab: "request" | "permissions" | "roles") => {
+    if (tab === "request") {
+      setRequestKey((k) => k + 1);
+    }
+    setActiveTab(tab);
+  };
+
   return (
     <div className="space-y-6">
       {/* Tabs */}
       <AccessTabs
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+       setActiveTab={setActiveTab}
       />
 
       {/* Tab Content */}
-      {activeTab === "request" && <AccessRequest />}
+      {activeTab === "request" && (
+        <AccessRequest key={requestKey} />
+      )}
       {activeTab === "permissions" && <ActivePermissions />}
       {activeTab === "roles" && <RoleAssignment />}
     </div>

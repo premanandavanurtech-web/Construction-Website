@@ -1,6 +1,13 @@
 "use client";
 
-import { StockFilters } from "./StockFilterModal";
+// ✅ Exported so StockClient and other files can import it
+export type StockFilters = {
+  category: string;
+  location: string;
+  minStock: string;
+  currentStock: string;
+  createdOn: string;
+};
 
 type Props = {
   filters: StockFilters;
@@ -9,7 +16,7 @@ type Props = {
   locations: string[];
 };
 
-export default function InlineStockFilters({
+export default function StockFilterModal({
   filters,
   onChange,
   categories,
@@ -28,7 +35,9 @@ export default function InlineStockFilters({
       >
         <option value="">All Categories</option>
         {categories.map((c) => (
-          <option key={c} value={c}>{c}</option>
+          <option key={c} value={c}>
+            {c}
+          </option>
         ))}
       </select>
 
@@ -40,7 +49,9 @@ export default function InlineStockFilters({
       >
         <option value="">All Locations</option>
         {locations.map((l) => (
-          <option key={l} value={l}>{l}</option>
+          <option key={l} value={l}>
+            {l}
+          </option>
         ))}
       </select>
 

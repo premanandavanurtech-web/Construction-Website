@@ -9,7 +9,8 @@ export type Project = {
   region: string;
   gps: string;
   description: string;
-  projectImage:null
+drawings: null,
+  projectImage?: string | null; // ✅ IMAGE HERE
 
   // Timeline
   startDate: string;
@@ -35,7 +36,6 @@ export type Project = {
   // Docs
   permits?: string | null;
   legalDocs?: string | null;
-  drawings?: string | null;
 
   createdAt: number;
 };

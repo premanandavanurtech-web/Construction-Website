@@ -3,12 +3,19 @@ export type StockItem = {
   category: string;
   current: string;
   min: string;
+  unit: string; // ✅ added to match EditStockModal
   location: string;
   status: string;
-  vendor:string;
+  vendor: string;
   createdAt: number;
   updatedAt: number;
   expiresAt: number;
-
-  updated?: string; // optional (safe)
+  updated?: string;
+  history?: {
+    timestamp: number;
+    quantityUsed: number;
+    task: string;
+    approvedBy: string;
+    remarks: string;
+  }[];
 };

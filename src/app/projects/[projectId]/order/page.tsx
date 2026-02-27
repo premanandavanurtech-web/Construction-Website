@@ -1,9 +1,6 @@
 "use client";
 
-// import OrderRequestTable from "@/src/component/project/[stock]/order/OrderRequestTable";
-// import OrdersHeader from "@/src/component/project/[stock]/order/OrdersHeader";
-// import OrdersTable from "@/src/component/project/[stock]/order/OrdersTable";
-// import StatusCards from "@/src/component/project/[stock]/order/StatusCards";
+
 
 import OrderRequestTable from "@/src/component/project/order/OrderRequestTable"
 import OrdersTable from "@/src/component/project/order/OrderTable"
@@ -21,29 +18,35 @@ export default function OrderPage() {
       <StatusCards />
 
       {/* Tabs */}
-      <div className="flex gap-10 border-b">
-        <button
-          onClick={() => setActiveTab("orders")}
-          className={`pb-2 font-medium ${
-            activeTab === "orders"
-              ? "border-b-2 border-[#2F3E4E]"
-              : "text-gray-500"
-          }`}
-        >
-          Orders
-        </button>
+      {/* Tabs */}
+<div className="border-b">
+  <div className="grid grid-cols-2">
+    <button
+      onClick={() => setActiveTab("orders")}
+      className={`py-3 text-sm font-medium text-center ${
+        activeTab === "orders"
+          ? "border-b-2 border-[#2F3E4E] text-black"
+          : "text-gray-500"
+      }`}
+    >
+      Orders
+    </button>
 
-        <button
-          onClick={() => setActiveTab("request")}
-          className={`pb-2 font-medium ${
-            activeTab === "request"
-              ? "border-b-2 border-[#2F3E4E]"
-              : "text-gray-500"
-          }`}
-        >
-          Order Request
-        </button>
-      </div>
+    <button
+     onClick={() => {
+  setActiveTab("request");
+  window.dispatchEvent(new Event("access-request-refresh"));
+}}
+      className={`py-3 text-sm font-medium text-center ${
+        activeTab === "request"
+          ? "border-b-2 border-[#2F3E4E] text-black"
+          : "text-gray-500"
+      }`}
+    >
+      Order Request
+    </button>
+  </div>
+</div>
 
       {/* Content */}
       {activeTab === "orders" && <OrdersTable />}

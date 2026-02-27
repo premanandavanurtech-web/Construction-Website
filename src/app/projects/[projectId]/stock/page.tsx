@@ -1,12 +1,12 @@
-import StockClient from "./stockClient";
+import StockClient from "@/src/component/project/stock/stockClient";
 
-
-export default async function CurrentInventoryPage({
+// ✅ FIXED
+export default async function StockPage({
   params,
 }: {
   params: Promise<{ projectId: string }>;
 }) {
-  const { projectId } = await params; // ✅ unwrap params
+  const { projectId } = await params;
 
   return <StockClient projectId={projectId} />;
 }
