@@ -27,7 +27,7 @@ export default function UpdateQuantityModal({ open, item, projectId, onClose, on
 
     const updated: StockItem = {
       ...item,
-      current: newCurrent,
+      current: String(newCurrent), // ✅ convert to string to match StockItem type
       updatedAt: now,
       expiresAt: now + SEVEN_DAYS,
       status: newCurrent <= Number(item.min) ? "Low Stock" : "In Stock",
@@ -44,6 +44,7 @@ export default function UpdateQuantityModal({ open, item, projectId, onClose, on
     };
 
     localStorage.setItem(`stock-${projectId}-${item.name}`, JSON.stringify(updated));
+    window.dispatchEvent(new Event("stock-updated")); // ✅ notify other components
     setQuantityOut("");
     onSuccess();
     onClose();
@@ -83,7 +84,6 @@ export default function UpdateQuantityModal({ open, item, projectId, onClose, on
               type="number"
               value={quantityOut}
               onChange={(e) => setQuantityOut(e.target.value)}
-              placeholder=""
               className="w-full border rounded-lg px-3 h-10 text-sm outline-none"
             />
           </div>

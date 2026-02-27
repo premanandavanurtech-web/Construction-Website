@@ -8,7 +8,8 @@ import UpdateQuantityModal from "./UpdateQuantityModal";
 type Props = {
   item: StockItem;
   onBack: () => void;
-  onUpdate: (item: StockItem) => void; // ← add this
+  onUpdate: (item: StockItem) => void;
+  projectId: string; // ✅ added as separate prop
 };
 
 function formatTime(timestamp: number) {
@@ -23,9 +24,10 @@ function formatTime(timestamp: number) {
   return new Date(timestamp).toLocaleDateString();
 }
 
-export default function StockDetails({ item, onBack, onUpdate }: Props) {
+export default function StockDetails({ item, onBack, onUpdate, projectId }: Props) {
   const [openUpdate, setOpenUpdate] = useState(false);
   if (!item) return null;
+
   return (
     <div className="bg-white border rounded-xl p-6">
       {/* Header row */}
@@ -34,7 +36,6 @@ export default function StockDetails({ item, onBack, onUpdate }: Props) {
           ← View Details
         </button>
 
-        {/* ← Update Stock button */}
         <button
           onClick={() => setOpenUpdate(true)}
           className="px-4 py-2 text-sm rounded-lg bg-[#344960] text-white hover:bg-[#2a3c50]"
@@ -42,13 +43,14 @@ export default function StockDetails({ item, onBack, onUpdate }: Props) {
           Update Stock
         </button>
       </div>
-<UpdateQuantityModal
-  open={openUpdate}
-  item={item}
-  projectId={item.projectId} // or pass projectId as prop
-  onClose={() => setOpenUpdate(false)}
-  onSuccess={() => onBack()} // go back to list after update
-/>
+
+      <UpdateQuantityModal
+        open={openUpdate}
+        item={item}
+        projectId={projectId} // ✅ use prop instead of item.projectId
+        onClose={() => setOpenUpdate(false)}
+        onSuccess={() => onBack()}
+      />
 
       <h2 className="text-xl font-semibold text-black mb-4">
         {item.name} ({item.unit || "50kg"})

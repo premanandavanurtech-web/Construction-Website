@@ -9,7 +9,7 @@ export type Project = {
   region: string;
   gps: string;
   description: string;
-
+drawings: null,
   projectImage?: string | null; // ✅ IMAGE HERE
 
   // Timeline

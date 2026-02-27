@@ -1,233 +1,295 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { Search, Eye, Trash2, Pencil } from "lucide-react";
-import ConfirmDeleteModal from "@/src/layout/ConfirmDeleteModal";
-import StockDetails from "@/src/component/project/stock/StockDetails";
-import EditStockModal from "@/src/component/project/stock/EditStockModal";
-import { StockItem } from "@/src/ts/stock";
+import { useEffect, useState } from "react";
 
-export default function MachineryClient({ projectId }: { projectId: string }) {
-  const [items, setItems] = useState<StockItem[]>([]);
-  const [search, setSearch] = useState("");
-  const [deleteItem, setDeleteItem] = useState<StockItem | null>(null);
+/* ---------- Types ---------- */
 
-  // ✅ View — same as CurrentInventory
-  const [selectedStock, setSelectedStock] = useState<StockItem | null>(null);
+type StockHistory = {
+  timestamp: number;
+  quantityUsed: number;
+  task: string;
+  approvedBy: string;
+  remarks: string;
+};
 
-  // ✅ Edit — same as CurrentInventory
-  const [editItem, setEditItem] = useState<StockItem | null>(null);
-  const [openEdit, setOpenEdit] = useState(false);
+type StockItem = {
+  name: string;
+  current: string;   // string for input
+  unit: string;
+  category: string;
+  location: string;
+  min: string;       // string for input
+  vendor: string;
+  createdAt: number;
+  updatedAt: number;
+  expiresAt: number;
+  history?: StockHistory[];
+};
 
-  const loadStock = useCallback(() => {
-    const now = Date.now();
-    const loaded: StockItem[] = [];
+type Props = {
+  open: boolean;
+  projectId: string;
+  item: StockItem | null;
+  onClose: () => void;
+};
 
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith(`stock-${projectId}-`)) {
-        const raw = localStorage.getItem(key);
-        if (!raw) return;
-        try {
-          const parsed: StockItem = JSON.parse(raw);
-          if (parsed.expiresAt > now) {
-            loaded.push(parsed);
-          } else {
-            localStorage.removeItem(key);
-          }
-        } catch {
-          console.error("Failed to parse:", key);
-        }
-      }
-    });
+const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
 
-    setItems(loaded);
+/* ---------- Component ---------- */
+
+export default function EditStockModal({
+  open,
+  projectId,
+  item,
+  onClose,
+}: Props) {
+  const [form, setForm] = useState<StockItem>({
+    name: "",
+    current: "",
+    unit: "",
+    category: "",
+    location: "",
+    min: "",
+    vendor: "",
+    createdAt: 0,
+    updatedAt: 0,
+    expiresAt: 0,
+    history: [],
+  });
+
+  const [categories, setCategories] = useState<string[]>([]);
+  const [locations, setLocations] = useState<string[]>([]);
+
+  /* Load item into form (keep strings for inputs) */
+  useEffect(() => {
+    if (item) {
+      setForm({
+        ...item,
+        current: String(item.current ?? ""),
+        min: String(item.min ?? ""),
+      });
+    }
+  }, [item]);
+
+  /* Load dropdown data */
+  useEffect(() => {
+    setCategories(
+      JSON.parse(localStorage.getItem(`categories-${projectId}`) || "[]")
+    );
+    setLocations(
+      JSON.parse(localStorage.getItem(`locations-${projectId}`) || "[]")
+    );
   }, [projectId]);
 
-  useEffect(() => {
-    loadStock();
-    const handleCustom = () => loadStock();
-    window.addEventListener("stock-updated", handleCustom);
-    window.addEventListener("categories-updated", handleCustom);
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key?.startsWith(`stock-${projectId}-`)) loadStock();
-    };
-    window.addEventListener("storage", handleStorage);
-    return () => {
-      window.removeEventListener("stock-updated", handleCustom);
-      window.removeEventListener("categories-updated", handleCustom);
-      window.removeEventListener("storage", handleStorage);
-    };
-  }, [loadStock]);
+  if (!open || !item) return null;
 
-  const machinery = items.filter(
-    (item) =>
-      item.category.trim().toLowerCase() === "machinery" &&
-      item.name.toLowerCase().includes(search.toLowerCase())
-  );
+  /* ---------- Save with merge + history ---------- */
+  const save = () => {
+    const now = Date.now();
 
-  // ✅ If viewing a stock detail, show StockDetails (same as CurrentInventory)
-  if (selectedStock) {
-    return (
-      <StockDetails
-        item={selectedStock}
-        onBack={() => setSelectedStock(null)}
-        onUpdate={(updated) => {
-          setSelectedStock(updated);
-          loadStock();
-        }}
-      />
+    // Convert numbers safely (keep old if empty)
+    const currentNum =
+      form.current === "" ? Number(item.current) : Number(form.current);
+    const minNum =
+      form.min === "" ? Number(item.min) : Number(form.min);
+
+    // Merge old item + new form (unchanged fields stay same)
+    const merged = {
+      ...item,
+      ...form,
+      current: currentNum,
+      min: minNum,
+      updatedAt: now,
+      expiresAt: now + SEVEN_DAYS,
+    };
+
+    /* Detect changes for history */
+    const changes: string[] = [];
+
+    if (item.name !== merged.name)
+      changes.push(`Name ${item.name} → ${merged.name}`);
+
+    if (Number(item.current) !== currentNum)
+      changes.push(`Quantity ${item.current} → ${currentNum}`);
+
+    if (Number(item.min) !== minNum)
+      changes.push(`Min Stock ${item.min} → ${minNum}`);
+
+    if (item.unit !== merged.unit)
+      changes.push(`Unit ${item.unit} → ${merged.unit}`);
+
+    if (item.vendor !== merged.vendor)
+      changes.push(`Vendor ${item.vendor || "--"} → ${merged.vendor}`);
+
+    if (item.category !== merged.category)
+      changes.push(`Category ${item.category} → ${merged.category}`);
+
+    if (item.location !== merged.location)
+      changes.push(`Location ${item.location} → ${merged.location}`);
+
+    const historyEntry: StockHistory | null =
+      changes.length > 0
+        ? {
+            timestamp: now,
+            quantityUsed: Math.abs(Number(item.current) - currentNum),
+            task: "Stock Updated",
+            approvedBy: merged.vendor || "Vendor",
+            remarks: changes.join(", "),
+          }
+        : null;
+
+    merged.history = historyEntry
+      ? [...(item.history || []), historyEntry]
+      : item.history || [];
+
+    // Remove old key if name changed
+    if (item.name !== merged.name) {
+      localStorage.removeItem(`stock-${projectId}-${item.name}`);
+    }
+
+    localStorage.setItem(
+      `stock-${projectId}-${merged.name}`,
+      JSON.stringify(merged)
     );
-  }
 
+    onClose();
+  };
+
+  /* ---------- UI ---------- */
   return (
     <>
-      <div className="bg-white rounded-2xl border border-gray-200 p-5 space-y-4">
-        {/* Search */}
-        <div className="relative">
-          <Search
-            size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search Machinery..."
-            className="w-full h-10 pl-10 pr-4 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-100"
-          />
-        </div>
+      <div className="fixed inset-0 bg-black/40 z-40" onClick={onClose} />
 
-        {/* Table */}
-        <div className="overflow-hidden rounded-lg border">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-gray-50">
-                <th className="px-4 py-3 text-left font-medium text-gray-500">
-                  Item Name
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">
-                  Category
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">
-                  Stock
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">
-                  Min
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">
-                  Location
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">
-                  Status
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">
-                  Updated
-                </th>
-                <th className="px-4 py-3 text-center font-medium text-gray-500">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {machinery.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="py-12 text-center text-gray-400">
-                    {items.length === 0
-                      ? "No stock items found"
-                      : "No machinery items found"}
-                  </td>
-                </tr>
-              ) : (
-                machinery.map((item, i) => (
-                  <tr
-                    key={i}
-                    className="border-b last:border-none hover:bg-gray-50"
-                  >
-                    <td className="px-4 py-3 font-medium text-black">
-                      {item.name}
-                    </td>
-                    <td className="px-4 py-3 text-black">{item.category}</td>
-                    <td className="px-4 py-3 text-black">{item.current}</td>
-                    <td className="px-4 py-3 text-black">{item.min}</td>
-                    <td className="px-4 py-3 text-black">{item.location}</td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          item.current <= item.min
-                            ? "bg-red-100 text-red-700"
-                            : "bg-green-100 text-green-700"
-                        }`}
-                      >
-                        {item.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-400 text-xs">
-                      {item.updated}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-center gap-3 text-gray-500">
-                        {/* ✅ View — opens StockDetails */}
-                        <button
-                          className="hover:text-blue-500"
-                          onClick={() => setSelectedStock(item)}
-                        >
-                          <Eye size={16} />
-                        </button>
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div
+          className="w-[420px] bg-white rounded-xl shadow-xl p-6 space-y-4"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h2 className="text-lg font-semibold text-gray-900">
+            Edit Stock
+          </h2>
 
-                        {/* ✅ Delete */}
-                        <button
-                          className="hover:text-red-500"
-                          onClick={() => setDeleteItem(item)}
-                        >
-                          <Trash2 size={16} />
-                        </button>
+          <Field label="Item Name">
+            <input
+              value={form.name}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, name: e.target.value }))
+              }
+              className="input"
+            />
+          </Field>
 
-                        {/* ✅ Edit — opens EditStockModal */}
-                        <button
-                          className="hover:text-yellow-500"
-                          onClick={() => {
-                            setEditItem(item);
-                            setOpenEdit(true);
-                          }}
-                        >
-                          <Pencil size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+          <Field label="Quantity">
+            <input
+              type="number"
+              value={form.current}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, current: e.target.value }))
+              }
+              className="input no-spinner"
+            />
+          </Field>
+
+          <Field label="Unit">
+            <input
+              value={form.unit}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, unit: e.target.value }))
+              }
+              className="input"
+            />
+          </Field>
+
+          <Field label="Vendor">
+            <input
+              value={form.vendor}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, vendor: e.target.value }))
+              }
+              className="input"
+            />
+          </Field>
+
+          <Field label="Category">
+            <select
+              value={form.category}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, category: e.target.value }))
+              }
+              className="input"
+            >
+              <option value="">Select category</option>
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </Field>
+
+          <Field label="Storage Location">
+            <select
+              value={form.location}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, location: e.target.value }))
+              }
+              className="input"
+            >
+              <option value="">Select location</option>
+              {locations.map((l) => (
+                <option key={l} value={l}>
+                  {l}
+                </option>
+              ))}
+            </select>
+          </Field>
+
+          <Field label="Minimum Stock Level">
+            <input
+              type="number"
+              value={form.min}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, min: e.target.value }))
+              }
+              className="input no-spinner"
+            />
+          </Field>
+
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={onClose}
+              className="flex-1 h-10 border rounded-lg"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={save}
+              className="flex-1 h-10 rounded-lg bg-[#344960] text-white"
+            >
+              Save Changes
+            </button>
+          </div>
         </div>
       </div>
-
-      {/* ✅ Delete modal */}
-      <ConfirmDeleteModal
-        open={!!deleteItem}
-        itemName={deleteItem?.name}
-        onCancel={() => setDeleteItem(null)}
-        onConfirm={() => {
-          if (!deleteItem) return;
-          localStorage.removeItem(
-            `stock-${projectId}-${deleteItem.name
-              .toLowerCase()
-              .replace(/\s+/g, "-")}`
-          );
-          setDeleteItem(null);
-          loadStock();
-        }}
-      />
-
-      {/* ✅ Edit modal — same as CurrentInventory */}
-      <EditStockModal
-        open={openEdit}
-        projectId={projectId}
-        item={editItem}
-        onClose={() => {
-          setOpenEdit(false);
-          loadStock();
-        }}
-      />
     </>
+  );
+}
+
+/* ---------- Helper ---------- */
+
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className="block text-xs text-gray-500 mb-1">
+        {label}
+      </label>
+      {children}
+    </div>
   );
 }

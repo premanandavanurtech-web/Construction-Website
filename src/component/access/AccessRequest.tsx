@@ -29,7 +29,7 @@ function loadRequests(): Request[] {
       localStorage.removeItem(ACCESS_REQUEST_KEY);
       return [];
     }
-    return parsed.data || [];
+   return (parsed.data || []) as Request[];
   } catch {
     return [];
   }
@@ -120,9 +120,9 @@ export default function AccessRequest() {
   /* ================= ACTIONS ================= */
 
   const approveRequest = (index: number) => {
-    const updatedRequests = requests.map((r, i) =>
-      i === index ? { ...r, status: "approved" } : r
-    );
+    const updatedRequests: Request[] = requests.map((r, i) =>
+  i === index ? { ...r, status: "approved" as const } : r
+);
     const approved = updatedRequests[index];
     setRequests(updatedRequests);
     saveRequests(updatedRequests);
@@ -149,13 +149,20 @@ export default function AccessRequest() {
     window.dispatchEvent(new Event("users-updated"));
   };
 
-  const rejectRequest = (index: number) => {
-    const updated = requests.map((r, i) =>
-      i === index ? { ...r, status: "rejected" } : r
-    );
-    setRequests(updated);
-    saveRequests(updated);
-  };
+ const rejectRequest = (index: number) => {
+  const updated: Request[] = requests.map((r, i) => {
+    if (i === index) {
+      return {
+        ...r,
+        status: "rejected" as "pending" | "approved" | "rejected",
+      };
+    }
+    return r;
+  });
+
+  setRequests(updated);
+  saveRequests(updated);
+};
 
   /* ================= FILTER OPTIONS ================= */
 

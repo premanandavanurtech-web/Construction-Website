@@ -16,13 +16,15 @@ type StockLog = {
 type Props = {
   open: boolean;
   onClose: () => void;
-  onSubmit: () => void; // ✅ ADDED
+  onSubmit: () => void;
+  projectId: string; // ✅ added
 };
 
 export default function IssueStockModal({
   open,
   onClose,
   onSubmit,
+  projectId, // ✅ added
 }: Props) {
   const [item, setItem] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -30,7 +32,7 @@ export default function IssueStockModal({
   const [issueTo, setIssueTo] = useState("");
   const [stockItems, setStockItems] = useState<string[]>([]);
 
-  /* 🔹 Load available items from RECEIVED logs */
+  /* Load available items from RECEIVED logs */
   useEffect(() => {
     const logs: StockLog[] = JSON.parse(
       localStorage.getItem("stockLogs") || "[]"
@@ -56,7 +58,7 @@ export default function IssueStockModal({
       if (log.item === item && log.type === "Received") {
         return {
           ...log,
-          type: "Issued",
+          type: "Issued" as const,
           quantity: `${quantity} ${unit}`,
           from: "Warehouse",
           to: issueTo,
@@ -74,7 +76,7 @@ export default function IssueStockModal({
 
     localStorage.setItem("stockLogs", JSON.stringify(updatedLogs));
 
-    onSubmit(); // ✅ notify parent
+    onSubmit();
     onClose();
   };
 
@@ -116,9 +118,7 @@ export default function IssueStockModal({
           </div>
 
           <div>
-            <label className="text-sm text-gray-700 block mb-1">
-              Unit
-            </label>
+            <label className="text-sm text-gray-700 block mb-1">Unit</label>
             <input
               value={unit}
               onChange={(e) => setUnit(e.target.value)}

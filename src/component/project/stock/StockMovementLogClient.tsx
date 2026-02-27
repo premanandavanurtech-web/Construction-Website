@@ -13,8 +13,10 @@ type StockLog = {
   date: string;
   invoice: string;
 };
-
-export default function StockMovementLogPage() {
+type Props = {
+  projectId: string;
+};
+export default function StockMovementLogPage({ projectId }: Props) {
    const [logs, setLogs] = useState<StockLog[]>([]);
 
   useEffect(() => {

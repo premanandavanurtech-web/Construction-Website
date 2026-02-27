@@ -37,11 +37,6 @@ export default function StockClient({ projectId }: { projectId: string }) {
   const [locations, setLocations] = useState<string[]>([]);
   const [selectedStock, setSelectedStock] = useState<StockItem | null>(null);
 
-  // Debug: Log projectId to verify it's being passed correctly
-  useEffect(() => {
-    console.log("StockClient - projectId:", projectId);
-  }, [projectId]);
-
   /* ---------------- LOAD STOCK FROM LOCALSTORAGE ---------------- */
 
   const loadStock = () => {
@@ -73,8 +68,6 @@ export default function StockClient({ projectId }: { projectId: string }) {
     });
 
     setItems(valid);
-
-    // 🔔 notify stats + others
     window.dispatchEvent(new Event("stock-updated"));
   };
 
@@ -112,17 +105,9 @@ export default function StockClient({ projectId }: { projectId: string }) {
     setCategories(loadCategories());
     setLocations(loadLocations());
 
-    const handleCategoriesUpdated = () => {
-      setCategories(loadCategories());
-    };
-
-    const handleLocationsUpdated = () => {
-      setLocations(loadLocations());
-    };
-
-    const handleStockUpdated = () => {
-      loadStock();
-    };
+    const handleCategoriesUpdated = () => setCategories(loadCategories());
+    const handleLocationsUpdated = () => setLocations(loadLocations());
+    const handleStockUpdated = () => loadStock();
 
     window.addEventListener("categories-updated", handleCategoriesUpdated);
     window.addEventListener("locations-updated", handleLocationsUpdated);
@@ -144,16 +129,15 @@ export default function StockClient({ projectId }: { projectId: string }) {
     if (filters.category && item.category !== filters.category) return false;
     if (filters.location && item.location !== filters.location) return false;
 
-    if (filters.minStock && item.current > Number(filters.minStock))
+    // ✅ Convert item.current to number before comparing
+    if (filters.minStock && Number(item.current) > Number(filters.minStock))
       return false;
 
-    if (filters.currentStock && item.current > Number(filters.currentStock))
+    if (filters.currentStock && Number(item.current) > Number(filters.currentStock))
       return false;
 
     if (filters.createdOn) {
-      const itemDate = new Date(item.createdAt)
-        .toISOString()
-        .split("T")[0];
+      const itemDate = new Date(item.createdAt).toISOString().split("T")[0];
       if (itemDate !== filters.createdOn) return false;
     }
 
@@ -162,14 +146,10 @@ export default function StockClient({ projectId }: { projectId: string }) {
 
   /* ---------------- HANDLERS ---------------- */
 
-  const handleOpenLocationModal = () => {
-    console.log("Opening location modal with projectId:", projectId);
-    setOpenLocation(true);
-  };
+  const handleOpenLocationModal = () => setOpenLocation(true);
 
   const handleLocationModalClose = () => {
     setOpenLocation(false);
-    // Refresh locations when modal closes
     setLocations(loadLocations());
   };
 
@@ -251,13 +231,12 @@ export default function StockClient({ projectId }: { projectId: string }) {
       ) : (
         <StockDetails
           item={selectedStock}
+            projectId={projectId}  
           onBack={() => setSelectedStock(null)}
-              onUpdate={(updatedItem) => {
-      // refresh stock list and go back
-      loadStock();
-      setSelectedStock(null);
-    }}
-
+          onUpdate={() => {
+            loadStock();
+            setSelectedStock(null);
+          }}
         />
       )}
     </>

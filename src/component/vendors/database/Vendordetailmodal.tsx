@@ -13,7 +13,7 @@ export type Vendor = {
   name: string;
   email: string;
   type: string;
-  industry: string;
+  
   city: string;
   contactName: string;
   phone: string;
@@ -246,11 +246,7 @@ export default function VendorDetailModal({ vendor, onClose }: Props) {
                       {vendor.type}
                     </span>
                   )}
-                  {vendor.industry && (
-                    <span className="text-[11px] bg-white/15 text-white/90 px-2.5 py-0.5 rounded-full">
-                      {vendor.industry}
-                    </span>
-                  )}
+                
                   {vendor.city && (
                     <span className="text-[11px] text-white/60 flex items-center gap-1">
                       <MapPin className="w-3 h-3" />{vendor.city}
@@ -291,7 +287,7 @@ export default function VendorDetailModal({ vendor, onClose }: Props) {
             {/* Company */}
             <SectionCard title="Company Details">
               <DetailRow icon={<Building2 className="w-3.5 h-3.5 text-gray-500" />}  label="Vendor Type"  value={vendor.type} />
-              <DetailRow icon={<Briefcase className="w-3.5 h-3.5 text-gray-500" />}  label="Industry"     value={vendor.industry} />
+
               <DetailRow icon={<Hash className="w-3.5 h-3.5 text-gray-500" />}       label="Vendor ID"    value={vendor.id} />
             </SectionCard>
 

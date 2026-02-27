@@ -1,6 +1,6 @@
 const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
 
-export function setWithExpiry(key, value) {
+export function setWithExpiry(key: string, value: unknown): void {
   const item = {
     value,
     expiry: Date.now() + ONE_WEEK,
@@ -8,7 +8,7 @@ export function setWithExpiry(key, value) {
   localStorage.setItem(key, JSON.stringify(item));
 }
 
-export function getWithExpiry(key) {
+export function getWithExpiry(key: string): unknown {
   const itemStr = localStorage.getItem(key);
   if (!itemStr) return null;
 
@@ -20,6 +20,6 @@ export function getWithExpiry(key) {
   return item.value;
 }
 
-export function removeWithExpiry(key) {
+export function removeWithExpiry(key: string): void {
   localStorage.removeItem(key);
 }

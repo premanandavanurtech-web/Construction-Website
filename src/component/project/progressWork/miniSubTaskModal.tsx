@@ -9,14 +9,21 @@ import {
 
 const SUBTASK_STORAGE_KEY = "assign_subtask_draft";
 
+type FormState = {
+  title: string;
+  location: string;
+  category: string;
+  status: string;
+};
+
 export default function AddSubTaskModal({
   onClose,
   onAddSubtask,
 }: {
   onClose: () => void;
-  onAddSubtask: (subtask: any) => void;
+  onAddSubtask: (subtask: FormState) => void;
 }) {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<FormState>({
     title: "",
     location: "",
     category: "",
@@ -26,7 +33,7 @@ export default function AddSubTaskModal({
   /* ✅ Load subtask draft (1 week valid) */
   useEffect(() => {
     const saved = getWithExpiry(SUBTASK_STORAGE_KEY);
-    if (saved) setForm(saved);
+    if (saved) setForm(saved as FormState); // ✅ cast unknown to FormState
   }, []);
 
   /* ✅ Save subtask draft (1 week expiry) */
@@ -40,12 +47,8 @@ export default function AddSubTaskModal({
 
   const handleCreate = () => {
     if (!form.title.trim()) return;
-
     onAddSubtask(form);
-
-    /* ✅ clear subtask draft after create */
     removeWithExpiry(SUBTASK_STORAGE_KEY);
-
     onClose();
   };
 
@@ -65,38 +68,17 @@ export default function AddSubTaskModal({
 
         {/* Form */}
         <div className="space-y-4">
-          <Input
-            label="SubTask Title"
-            name="title"
-            value={form.title}
-            onChange={handleChange}
-          />
-          <Input
-            label="Location/Floor/Room"
-            name="location"
-            value={form.location}
-            onChange={handleChange}
-          />
-          <Input
-            label="SubTask Category"
-            name="category"
-            value={form.category}
-            onChange={handleChange}
-          />
+          <Input label="SubTask Title" name="title" value={form.title} onChange={handleChange} />
+          <Input label="Location/Floor/Room" name="location" value={form.location} onChange={handleChange} />
+          <Input label="SubTask Category" name="category" value={form.category} onChange={handleChange} />
         </div>
 
         {/* Footer */}
         <div className="flex justify-end gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="px-5 py-2 text-sm border rounded-md"
-          >
+          <button onClick={onClose} className="px-5 py-2 text-sm border rounded-md">
             Cancel
           </button>
-          <button
-            onClick={handleCreate}
-            className="px-5 py-2 text-sm rounded-md bg-slate-700 text-white"
-          >
+          <button onClick={handleCreate} className="px-5 py-2 text-sm rounded-md bg-slate-700 text-white">
             Create SubTask
           </button>
         </div>
@@ -105,7 +87,14 @@ export default function AddSubTaskModal({
   );
 }
 
-function Input({ label, name, value, onChange }) {
+type InputProps = {
+  label: string;
+  name: string;
+  value: string;
+  onChange: React.ChangeEventHandler<HTMLInputElement>;
+};
+
+function Input({ label, name, value, onChange }: InputProps) {
   return (
     <div>
       <label className="text-xs text-gray-600 mb-1 block">{label}</label>

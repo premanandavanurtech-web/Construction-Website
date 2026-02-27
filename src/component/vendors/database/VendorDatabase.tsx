@@ -97,7 +97,7 @@ export default function VendorDatabase() {
       name:           form.vendorName,
       email:          form.email,
       type:           form.vendorType,
-      industry:       form.industryType,
+    
       city:           [form.city, form.state].filter(Boolean).join(", "),
       contactName:    form.contactPersonName,
       phone:          form.phone,

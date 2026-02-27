@@ -6,20 +6,16 @@ import {
   getWithExpiry,
   removeWithExpiry,
 } from "@/src/utils/localStorageWithExpiry";
+import { Task, SubTask } from "@/src/ts/task";
 
 const TASK_STORAGE_KEY = "assign_task_draft";
 
-// ✅ onCreateTask is required — called with the full task object on submit
-export default function AssignTaskModal({
-  onClose,
-  
-}: {
-  onClose: () => void;
+type TaskForm = Omit<Task, "id">;
 
-}) {
+export default function AssignTaskModal({ onClose }: { onClose: () => void }) {
   const [openSubTask, setOpenSubTask] = useState(false);
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<TaskForm>({
     title: "",
     project: "",
     location: "",
@@ -34,7 +30,7 @@ export default function AssignTaskModal({
   /* Load task draft */
   useEffect(() => {
     const saved = getWithExpiry(TASK_STORAGE_KEY);
-    if (saved) setForm(saved);
+    if (saved) setForm(saved as TaskForm); // ✅ cast unknown to TaskForm
   }, []);
 
   /* Save task draft */
@@ -42,12 +38,14 @@ export default function AssignTaskModal({
     setWithExpiry(TASK_STORAGE_KEY, form);
   }, [form]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   /* Receive subtask from child */
-  const handleAddSubtask = (subtask: any) => {
+  const handleAddSubtask = (subtask: SubTask) => {
     setForm((prev) => ({
       ...prev,
       subtasks: [...prev.subtasks, subtask],
@@ -55,42 +53,37 @@ export default function AssignTaskModal({
     setOpenSubTask(false);
   };
 
-const handleCreateTask = () => {
-  if (!form.title.trim()) {
-    alert("Task title is required");
-    return;
-  }
+  const handleCreateTask = () => {
+    if (!form.title.trim()) {
+      alert("Task title is required");
+      return;
+    }
 
-  let existingTasks: any[] = [];
+    let existingTasks: Task[] = [];
 
-  try {
-    const raw = localStorage.getItem("tasks_list");
-    const parsed = raw ? JSON.parse(raw) : [];
-    existingTasks = Array.isArray(parsed) ? parsed : [];
-  } catch (e) {
-    existingTasks = [];
-  }
+    try {
+      const raw = localStorage.getItem("tasks_list");
+      const parsed = raw ? JSON.parse(raw) : [];
+      existingTasks = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      existingTasks = [];
+    }
 
-  const newTask = {
-    ...form,
-    id: Date.now(),
+    const newTask: Task = {
+      ...form,
+      id: Date.now(),
+    };
+
+    localStorage.setItem(
+      "tasks_list",
+      JSON.stringify([...existingTasks, newTask])
+    );
+
+    window.dispatchEvent(new Event("tasks-updated"));
+    removeWithExpiry(TASK_STORAGE_KEY);
+    onClose();
   };
 
-  localStorage.setItem(
-    "tasks_list",
-    JSON.stringify([...existingTasks, newTask])
-  );
-
-  console.log("TASK SAVED:", newTask);
-  localStorage.setItem("tasks_list", JSON.stringify([...existingTasks, newTask]));
-  
-  window.dispatchEvent(new Event("tasks-updated")); // ← ADD THIS
-  
-  removeWithExpiry(TASK_STORAGE_KEY);
-  onClose();
- 
-};
- 
   return (
     <>
       <div className="fixed inset-0 z-40 flex items-center justify-center">
@@ -103,7 +96,9 @@ const handleCreateTask = () => {
           {/* Header */}
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold">Assign New Task</h2>
-            <button onClick={onClose} className="text-xl text-gray-400">×</button>
+            <button onClick={onClose} className="text-xl text-gray-400">
+              ×
+            </button>
           </div>
 
           {/* Form */}
@@ -131,13 +126,19 @@ const handleCreateTask = () => {
 
               {form.subtasks.length > 0 && (
                 <ul className="space-y-1 text-sm">
-                  {form.subtasks.map((st: any, index: number) => (
+                  {form.subtasks.map((st: SubTask, index: number) => (
                     <li
                       key={index}
                       className="bg-gray-100 border border-gray-200 rounded px-2 py-1 flex justify-between"
                     >
                       <span>{st.title}</span>
-                      <span className={`text-xs font-medium ${st.status === "Completed" ? "text-green-600" : "text-amber-500"}`}>
+                      <span
+                        className={`text-xs font-medium ${
+                          st.status === "Completed"
+                            ? "text-green-600"
+                            : "text-amber-500"
+                        }`}
+                      >
                         {st.status}
                       </span>
                     </li>

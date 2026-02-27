@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { Search, Eye } from "lucide-react";
 import AddSubTaskModal from "./Addsubtaskmodal ";
+import { Task, SubTask } from "@/src/ts/task";
 
 const TASKS_KEY = "tasks_list";
 
 export default function TasksPage() {
-  const [tasks, setTasks] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [openSubTask, setOpenSubTask] = useState(false);
   const [activeTaskId, setActiveTaskId] = useState<number | null>(null);
 
@@ -15,7 +16,12 @@ export default function TasksPage() {
   useEffect(() => {
     const load = () => {
       const saved = localStorage.getItem(TASKS_KEY);
-      setTasks(saved ? JSON.parse(saved) : []);
+      try {
+        const parsed: Task[] = saved ? JSON.parse(saved) : [];
+        setTasks(parsed);
+      } catch {
+        setTasks([]);
+      }
     };
 
     load();
@@ -28,13 +34,13 @@ export default function TasksPage() {
     };
   }, []);
 
-  /* ---------------- ADD SUBTASK TO TASK ---------------- */
-  const addSubtaskToTask = (taskId: number, subtask: any) => {
-    const updatedTasks = tasks.map((task) => {
+  /* ---------------- ADD SUBTASK ---------------- */
+  const addSubtaskToTask = (taskId: number, subtask: SubTask) => {
+    const updatedTasks: Task[] = tasks.map((task) => {
       if (task.id === taskId) {
         return {
           ...task,
-          subtasks: [...(task.subtasks || []), subtask],
+          subtasks: [...task.subtasks, subtask],
         };
       }
       return task;
@@ -49,7 +55,7 @@ export default function TasksPage() {
     <div className="p-6 text-black bg-gray-50 min-h-screen">
       <h2 className="text-xl font-semibold mb-4">Tasks</h2>
 
-      {/* Search */}
+      {/* ---------------- SEARCH ---------------- */}
       <div className="flex gap-3 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -63,26 +69,30 @@ export default function TasksPage() {
         </button>
       </div>
 
-      {/* Subtask Modal */}
+      {/* ---------------- SUBTASK MODAL ---------------- */}
       {openSubTask && activeTaskId !== null && (
         <AddSubTaskModal
           onClose={() => {
             setOpenSubTask(false);
             setActiveTaskId(null);
           }}
-          onAddSubtask={(subtask) =>
-            addSubtaskToTask(activeTaskId, subtask)
-          }
+          onAddSubtask={(subtask: SubTask) => { // ✅ consistent casing, correct type
+            addSubtaskToTask(activeTaskId, subtask);
+            setOpenSubTask(false);
+            setActiveTaskId(null);
+          }}
         />
       )}
 
-      {/* Tasks */}
+      {/* ---------------- TASK LIST ---------------- */}
       <div className="space-y-6">
         {tasks.map((task) => {
-          const completed =
-            task.subtasks?.filter((s) => s.status === "Completed").length || 0;
-          const total = task.subtasks?.length || 0;
-          const progress = total ? Math.round((completed / total) * 100) : 0;
+          const completed = task.subtasks.filter(
+            (s) => s.status === "Completed"
+          ).length;
+          const total = task.subtasks.length;
+          const progress =
+            total > 0 ? Math.round((completed / total) * 100) : 0;
 
           return (
             <div key={task.id} className="bg-white border rounded-xl p-5">
@@ -99,7 +109,6 @@ export default function TasksPage() {
                   <span className="px-4 py-2 bg-green-100 text-green-700 rounded">
                     In Progress
                   </span>
-
                   <button
                     onClick={() => {
                       setActiveTaskId(task.id);
@@ -107,12 +116,12 @@ export default function TasksPage() {
                     }}
                     className="px-4 py-2 rounded-xl bg-[#344960] text-white"
                   >
-                   add subtask
+                    Add Subtask
                   </button>
                 </div>
               </div>
 
-              {/* Progress */}
+              {/* Progress Bar */}
               <div className="h-2 bg-gray-200 rounded mb-4">
                 <div
                   className="h-2 bg-green-500 rounded"
@@ -134,24 +143,18 @@ export default function TasksPage() {
                 </thead>
 
                 <tbody className="divide-y">
-                  {task.subtasks?.length > 0 ? (
+                  {task.subtasks.length > 0 ? (
                     task.subtasks.map((st, i) => (
                       <tr key={i}>
                         <td className="px-4 py-2">{st.title}</td>
-                        <td className="px-4 py-2">
-                          {st.startDate || "-"}
-                        </td>
-                        <td className="px-4 py-2">
-                          {st.dueDate || "-"}
-                        </td>
+                        <td className="px-4 py-2">{st.startDate || "-"}</td>
+                        <td className="px-4 py-2">{st.dueDate || "-"}</td>
                         <td className="px-4 py-2">
                           <span className="px-2 py-0.5 text-xs rounded bg-green-100 text-green-700">
                             {st.status}
                           </span>
                         </td>
-                        <td className="px-4 py-2">
-                          {st.assignedTo || "-"}
-                        </td>
+                        <td className="px-4 py-2">{st.assignedTo || "-"}</td>
                         <td className="px-4 py-2 text-center">
                           <Eye className="w-4 h-4 inline" />
                         </td>

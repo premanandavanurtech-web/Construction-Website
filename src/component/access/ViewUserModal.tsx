@@ -20,13 +20,14 @@ type Props = {
 export default function ViewUserModal({ open, user, onClose }: Props) {
   if (!open || !user) return null;
 
-  const modules = user.access
-    ? Object.keys(user.access)
-        .filter((k) => user.access[k])
-        .map((k) => k.split("-")[1] || k)
-        .join(", ")
-    : "—";
+const access = user.access ?? {};
 
+const modules =
+  Object.keys(access)
+    .filter((k) => access[k])
+    .map((k) => k.split("-")[1] || k)
+    .join(", ") || "—";
+    
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white w-full max-w-lg rounded-xl p-6 shadow-lg">

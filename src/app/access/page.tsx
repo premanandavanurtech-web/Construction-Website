@@ -28,7 +28,7 @@ export default function AccessPage() {
       {/* Tabs */}
       <AccessTabs
         activeTab={activeTab}
-        setActiveTab={handleTabChange}
+       setActiveTab={setActiveTab}
       />
 
       {/* Tab Content */}
