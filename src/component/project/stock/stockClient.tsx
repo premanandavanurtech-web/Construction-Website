@@ -252,6 +252,12 @@ export default function StockClient({ projectId }: { projectId: string }) {
         <StockDetails
           item={selectedStock}
           onBack={() => setSelectedStock(null)}
+              onUpdate={(updatedItem) => {
+      // refresh stock list and go back
+      loadStock();
+      setSelectedStock(null);
+    }}
+
         />
       )}
     </>

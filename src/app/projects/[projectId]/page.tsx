@@ -1,9 +1,11 @@
+// app/projects/[projectId]/page.tsx
 import { redirect } from "next/navigation";
 
 export default async function ProjectIndexPage({
   params,
 }: {
-  params: { projectId: string };
+  params: Promise<{ projectId: string }>; // ✅ Promise type
 }) {
-  redirect(`/projects/${params.projectId}/stock`);
+  const { projectId } = await params; // ✅ await it
+  redirect(`/projects/${projectId}/stock`);
 }

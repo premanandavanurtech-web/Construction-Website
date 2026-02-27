@@ -1,12 +1,12 @@
 import StockClient from "@/src/component/project/stock/stockClient";
-import { use } from "react";
 
-
-export default function StockPage({
+// ✅ FIXED
+export default async function StockPage({
   params,
 }: {
   params: Promise<{ projectId: string }>;
 }) {
-  const { projectId } = use(params);
+  const { projectId } = await params;
+
   return <StockClient projectId={projectId} />;
 }
