@@ -1,354 +1,173 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
-import { Project } from "@/src/ts/project";
 
-type Props = {
-  onClose: () => void;
-  onCreate: (project: Project) => void;
+type Project = {
+  id: string;
+  name: string;
 };
 
-const steps = ["Basic", "Timeline", "Financial", "Team", "Legal&Docs"] as const;
+type Props = {
+  open: boolean;
+  onClose: () => void;
+  projects?: Project[];
+};
 
-const inputClass =
-  "w-full h-10 px-3 rounded-md bg-gray-100 text-sm text-gray-900 placeholder-gray-400 outline-none";
+export default function CreateOrderModal({ open, onClose, projects = [] }: Props) {
+  const [selectedProject, setSelectedProject] = useState("");
+  const [items, setItems] = useState([{ id: 1 }]);
 
-const labelClass =
-  "text-sm font-medium text-black font-bold mb-1 block";
+  if (!open) return null;
 
-export default function CreateProjectModal({ onClose, onCreate }: Props) {
-  const [step, setStep] = useState(0);
-
-  const [project, setProject] = useState<Project>({
-    id: crypto.randomUUID(),
-    name: "",
-    type: "",
-    city: "",
-    address: "",
-    region: "",
-    gps: "",
-    description: "",
-    projectImage: null,
-    startDate: "",
-    endDate: "",
-    milestones: [],
-    schedule: "",
-    budget: "",
-    costBreakdown: [],
-    fundingSource: "",
-    roi: "",
-    members: [],
-    siteAccess: "",
-    permits: null,
-    legalDocs: null,
-    drawings: null,
-    createdAt: Date.now(),
-  });
-
-  const update = (key: keyof Project, value: any) =>
-    setProject((p) => ({ ...p, [key]: value }));
-
-  const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => update("projectImage", reader.result as string);
-    reader.readAsDataURL(file);
-  };
-
-  const handleFile = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    key: "permits" | "legalDocs" | "drawings"
-  ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => update(key, reader.result as string);
-    reader.readAsDataURL(file);
-  };
-
-  const finish = () => {
-    const existing = JSON.parse(localStorage.getItem("projects") || "[]");
-    localStorage.setItem("projects", JSON.stringify([...existing, project]));
-    onCreate(project);
-    onClose();
-  };
+  const addItem = () => setItems((prev) => [...prev, { id: Date.now() }]);
+  const removeItem = (id: number) => setItems((prev) => prev.filter((i) => i.id !== id));
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center px-4">
-      {/* ✅ Modal: fixed height with flex layout so footer always visible */}
-      <div className="bg-white w-full max-w-[900px] max-h-[90vh] rounded-2xl relative flex flex-col">
+    <>
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40" onClick={onClose} />
+      <div className="fixed inset-0 text-black z-50 flex justify-center items-start overflow-y-auto py-10">
+        <div className="bg-white w-[900px] rounded-lg shadow-xl overflow-hidden">
+          <div className="bg-[#2F3E4E] text-white px-6 py-4 text-sm font-semibold">CREATE ORDER</div>
+          <div className="p-6 space-y-6 text-sm">
+            <div className="grid grid-cols-3 gap-4">
+              <Input label="Address" placeholder="Street address" />
+              <Input label="City" placeholder="City" />
+              <Input label="Invoice No." placeholder="INV-001" />
+              <Input label="Phone" placeholder="Phone number" />
+              <Input label="Email" placeholder="Email" />
+              <Input label="Date" placeholder="mm/dd/yyyy" />
 
-        {/* ── Fixed Header ── */}
-        <div className="px-6 pt-6 pb-0 flex-shrink-0">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-gray-700 hover:text-gray-600"
-          >
-            <X size={18} />
-          </button>
+              <div className="col-span-3">
+                <label className="block mb-1 text-sm font-medium text-gray-700">Site / Project</label>
+                <div className="relative">
+                  <select
+                    value={selectedProject}
+                    onChange={(e) => setSelectedProject(e.target.value)}
+                    className="w-full appearance-none bg-gray-100 rounded-md px-3 py-2 pr-10 text-sm text-gray-700 border border-transparent focus:border-[#2F3E4E] focus:outline-none cursor-pointer"
+                  >
+                    <option value="">— Select a project —</option>
+                    {projects.length === 0 ? (
+                      <option disabled>No projects created yet</option>
+                    ) : (
+                      projects.map((p) => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))
+                    )}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                    <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+                {selectedProject && (
+                  <div className="mt-2 inline-flex items-center gap-2 bg-[#2F3E4E]/10 text-[#2F3E4E] text-xs font-medium px-3 py-1.5 rounded-full">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" />
+                    </svg>
+                    {projects.find((p) => p.id === selectedProject)?.name}
+                    <button onClick={() => setSelectedProject("")} className="ml-1 text-[#2F3E4E]/60 hover:text-[#2F3E4E]">✕</button>
+                  </div>
+                )}
+              </div>
+            </div>
 
-          <h2 className="text-xl font-semibold text-[#38485e] mb-5">Create Project</h2>
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <SectionTitle title="VENDOR INFORMATION" />
+                <div className="grid grid-cols-2 gap-3">
+                  <Input label="Vendor Name" /><div />
+                  <Input label="Address" /><Input label="Shipping address" />
+                  <Input label="Contact" /><Input label="Email" />
+                </div>
+              </div>
+              <div>
+                <SectionTitle title="SHIP TO" />
+                <div className="grid grid-cols-2 gap-3">
+                  <Input label="Buyer Name" /><div />
+                  <Input label="Address" /><Input label="Shipping address" />
+                  <Input label="Contact" /><Input label="Email" />
+                </div>
+              </div>
+            </div>
 
-          {/* Tabs */}
-          <div className="flex bg-gray-200 rounded-lg p-1 mb-4">
-            {steps.map((s, i) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setStep(i)}
-                className={`flex-1 py-2 rounded-md text-sm transition ${
-                  i === step
-                    ? "bg-white text-gray-900 font-medium shadow-sm"
-                    : "text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                {s}
-              </button>
-            ))}
+            <div className="grid grid-cols-2 gap-4">
+              <Input label="Ordered Date" placeholder="mm/dd/yyyy" />
+              <Input label="Expected Delivery Date" placeholder="mm/dd/yyyy" />
+            </div>
+
+            <div>
+              <SectionTitle title="ORDER ITEMS" />
+              <div className="border rounded-md overflow-hidden">
+                <table className="w-full text-xs">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      {["S.No","Item","Description","Unit","Unit Cost","Total Cost",""].map((h) => (
+                        <th key={h} className="px-2 py-2 text-left font-semibold text-gray-600">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((row, idx) => (
+                      <tr key={row.id} className="border-t">
+                        <td className="px-2 py-2 text-gray-500">{idx + 1}</td>
+                        <td className="px-2 py-2"><SmallInput /></td>
+                        <td className="px-2 py-2"><SmallInput /></td>
+                        <td className="px-2 py-2"><SmallInput /></td>
+                        <td className="px-2 py-2"><SmallInput /></td>
+                        <td className="px-2 py-2"><SmallInput /></td>
+                        <td className="px-2 py-2 text-center">
+                          <button onClick={() => removeItem(row.id)} className="text-red-400 hover:text-red-600">🗑</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <button onClick={addItem} className="mt-2 text-xs text-[#2F3E4E] hover:underline">+ Add Item</button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <label className="block mb-1">Purchase Order Comments</label>
+                <textarea className="w-full bg-gray-100 rounded-md p-2 h-24" placeholder="Additional comments..." />
+              </div>
+              <div className="text-xs space-y-2">
+                <div className="flex justify-between"><span>Sub-total:</span><span>50.00</span></div>
+                <div className="flex justify-between"><span>Sales Tax (10%):</span><span>50.00</span></div>
+                <div className="flex justify-between font-semibold"><span>TOTAL:</span><span>50.00</span></div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block mb-1">Signature By</label>
+              <div className="border rounded-md p-2 text-xs text-gray-500">Upload digital signature...</div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 px-6 py-4 border-t">
+            <button onClick={onClose} className="px-5 py-2 border rounded-md text-sm">Cancel</button>
+            <button className="px-5 py-2 bg-[#2F3E4E] text-white rounded-md text-sm">Create Order</button>
           </div>
         </div>
-
-        {/* ── Scrollable Content ── */}
-        <div className="flex-1 overflow-y-auto px-6 py-4">
-
-          {/* ================= BASIC ================= */}
-          {step === 0 && (
-            <div className="grid grid-cols-2 gap-5">
-              <div className="text-black text-2xl col-span-2">
-                <label className={labelClass}>Project Name*</label>
-                <input
-                  className={inputClass}
-                  placeholder="Enter Project Name"
-                  onChange={(e) => update("name", e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className={labelClass}>Project Type*</label>
-                <input
-                  className={inputClass}
-                  placeholder="Enter Project Type"
-                  onChange={(e) => update("type", e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className={labelClass}>City</label>
-                <input
-                  className={inputClass}
-                  placeholder="Enter City Name"
-                  onChange={(e) => update("city", e.target.value)}
-                />
-              </div>
-
-              <div className="col-span-2">
-                <label className={labelClass}>Address*</label>
-                <input
-                  className={inputClass}
-                  placeholder="Enter Site Address"
-                  onChange={(e) => update("address", e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className={labelClass}>Region / State*</label>
-                <input
-                  className={inputClass}
-                  placeholder="Enter Region/State"
-                  onChange={(e) => update("region", e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className={labelClass}>GPS Coordinates</label>
-                <input
-                  className={inputClass}
-                  placeholder="Eg: 128378 343 463435"
-                  onChange={(e) => update("gps", e.target.value)}
-                />
-              </div>
-
-              <div className="col-span-2">
-                <label className={labelClass}>Project Description</label>
-                <textarea
-                  className="w-full h-20 px-3 py-2 rounded-md bg-gray-100 text-sm outline-none"
-                  placeholder="Enter Project Description"
-                  onChange={(e) => update("description", e.target.value)}
-                />
-              </div>
-
-              <div className="col-span-2">
-                <label className={labelClass}>Project Image</label>
-                <label className="flex items-center justify-center h-24 border-2 border-dashed rounded-xl cursor-pointer">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImage}
-                  />
-                  {project.projectImage ? (
-                    <img src={project.projectImage} className="h-full object-cover rounded-xl" />
-                  ) : (
-                    <span className="text-gray-500 text-sm">Click to upload image</span>
-                  )}
-                </label>
-              </div>
-            </div>
-          )}
-
-          {/* ================= TIMELINE ================= */}
-          {step === 1 && (
-            <>
-              <div className="grid grid-cols-2 gap-6 mb-6">
-                <div>
-                  <label className="text-sm font-medium text-gray-800 mb-1 block">Start Date*</label>
-                  <input
-                    className="w-full h-10 px-3 rounded-md bg-gray-100 text-black text-sm outline-none"
-                    type="date"
-                    onChange={(e) => update("startDate", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-800 mb-1 block">Estimated Completion Date*</label>
-                  <input
-                    className="w-full h-10 px-3 rounded-md text-black bg-gray-100 text-sm outline-none"
-                    type="date"
-                    onChange={(e) => update("startDate", e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <label className="text-sm font-medium text-gray-800 mb-2 block">Key Milestones</label>
-                <div className="grid grid-cols-[1fr_220px_140px] gap-4 mb-3">
-                  <input className="h-10 px-3 rounded-md text-black bg-gray-100 text-sm outline-none" placeholder="Milestone Name" />
-                  <input className="h-10 px-3 rounded-md text-black bg-gray-100 text-sm outline-none" type="date" onChange={(e) => update("startDate", e.target.value)} />
-                  <button className="h-10 rounded-md border border-slate-600 text-sm text-slate-700">Add Milestone</button>
-                </div>
-                <div className="grid grid-cols-[1fr_220px] gap-4">
-                  <input className="h-10 px-3 rounded-md text-black bg-gray-100 text-sm outline-none" placeholder="Milestone Name" />
-                  <input className="h-10 px-3 rounded-md text-black bg-gray-100 text-sm outline-none" type="date" onChange={(e) => update("startDate", e.target.value)} />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-800 mb-1 block">Construction Schedule/Phases</label>
-                <textarea
-                  className="w-full h-16 px-3 py-2 text-black rounded-md bg-gray-100 text-sm outline-none"
-                  placeholder="Outline The construction Phases And Timeline..."
-                />
-              </div>
-            </>
-          )}
-
-          {/* ================= FINANCIAL ================= */}
-          {step === 2 && (
-            <div className="space-y-6">
-              <div>
-                <label className={labelClass}>Total Budget/Estimated Cost*</label>
-                <input className={inputClass} placeholder="Enter Amount in Indian Rupees₹" onChange={(e) => update("budget", e.target.value)} />
-              </div>
-
-              <div>
-                <label className={labelClass}>Cost Breakdown</label>
-                <div className="grid grid-cols-[1fr_1fr_140px] gap-4 mb-3">
-                  <input className={inputClass} placeholder="Category" />
-                  <input className={inputClass} placeholder="Amount" />
-                  <button className="h-10 rounded-md border border-slate-600 text-sm text-slate-700">Add Milestone</button>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <input className={inputClass} placeholder="Category" />
-                  <input className={inputClass} placeholder="Amount" />
-                </div>
-              </div>
-
-              <div>
-                <label className={labelClass}>Funding Source</label>
-                <input className={inputClass} placeholder="Funding Source" onChange={(e) => update("fundingSource", e.target.value)} />
-              </div>
-
-              <div>
-                <label className={labelClass}>Expected ROI/Market Outlook</label>
-                <textarea className="w-full h-24 px-3 py-2 rounded-md bg-gray-100 text-sm outline-none" onChange={(e) => update("roi", e.target.value)} />
-              </div>
-            </div>
-          )}
-
-          {/* ================= TEAM ================= */}
-          {step === 3 && (
-            <div className="grid grid-cols-2 gap-5">
-              <div>
-                <label className={labelClass}>Role*</label>
-                <input className={inputClass} placeholder="Type Role" />
-              </div>
-              <div>
-                <label className={labelClass}>Name*</label>
-                <input className={inputClass} placeholder="Full Name or Company Name" />
-              </div>
-              <div>
-                <label className={labelClass}>Email*</label>
-                <input className={inputClass} placeholder="example@gmail.com" />
-              </div>
-              <div>
-                <label className={labelClass}>Phone Number*</label>
-                <input className={inputClass} placeholder="+91 XXXXXXXX" />
-              </div>
-              <div className="col-span-2">
-                <label className={labelClass}>Site Access & Security Info</label>
-                <textarea className="w-full h-20 px-3 py-2 rounded-md bg-gray-100 text-sm outline-none" onChange={(e) => update("siteAccess", e.target.value)} />
-              </div>
-            </div>
-          )}
-
-          {/* ================= LEGAL ================= */}
-          {step === 4 && (
-            <div className="space-y-6">
-              {(["permits", "legalDocs", "drawings"] as const).map((key) => (
-                <div key={key}>
-                  <label className="text-sm font-medium text-gray-800 mb-2 block">
-                    {key === "permits" ? "Building Permits" : key === "legalDocs" ? "Legal Documentation" : "Architectural Drawings & Plans"}
-                  </label>
-                  <label className="flex flex-col items-center justify-center h-28 rounded-xl border-2 border-dashed border-gray-300 cursor-pointer hover:bg-gray-50 transition">
-                    <input type="file" className="hidden" onChange={(e) => handleFile(e, key)} />
-                    <div className="flex flex-col items-center gap-2 text-gray-600">
-                      <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                        <path d="M12 16V4M8 8l4-4 4 4" />
-                        <path d="M4 16v4h16v-4" />
-                      </svg>
-                      <p className="text-sm"><span className="text-slate-800 font-medium">Upload A File</span> Or Drag And Drop</p>
-                      <p className="text-xs text-gray-500">Png, Jpg, Gif Upto 50MB</p>
-                    </div>
-                  </label>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* ── Fixed Footer ── */}
-        <div className="px-6 py-4 border-t flex-shrink-0 flex justify-end gap-4">
-          <button onClick={onClose} className="px-8 py-2 rounded-lg border border-gray-400 text-gray-700">
-            Cancel
-          </button>
-          {step > 0 && (
-            <button onClick={() => setStep(step - 1)} className="px-8 py-2 rounded-lg border border-gray-400 text-gray-700">
-              Previous
-            </button>
-          )}
-          {step < steps.length - 1 ? (
-            <button onClick={() => setStep(step + 1)} className="px-8 py-2 rounded-lg bg-slate-800 text-white">
-              Next
-            </button>
-          ) : (
-            <button onClick={finish} className="px-8 py-2 rounded-lg bg-slate-800 text-white">
-              Finish
-            </button>
-          )}
-        </div>
-
       </div>
+    </>
+  );
+}
+
+function Input({ label, placeholder = "" }: any) {
+  return (
+    <div>
+      <label className="block mb-1 text-sm font-medium text-gray-700">{label}</label>
+      <input placeholder={placeholder} className="w-full bg-gray-100 rounded-md px-3 py-2 text-sm border border-transparent focus:border-[#2F3E4E] focus:outline-none" />
     </div>
   );
+}
+
+function SectionTitle({ title }: any) {
+  return <div className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">{title}</div>;
+}
+
+function SmallInput() {
+  return <input className="w-full bg-gray-100 rounded px-2 py-1 text-xs border border-transparent focus:border-[#2F3E4E] focus:outline-none" />;
 }

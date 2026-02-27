@@ -2,28 +2,34 @@
 
 import { Search, Filter, Eye } from "lucide-react";
 import { useState } from "react";
+import CreateOrderModal from "../../project/order/CreateOrderModal";
 
 export default function PurchaseOrdersTracking() {
   const [activeTab, setActiveTab] = useState("Active");
+  const [open, setOpen] = useState(false);
 
   return (
     <div className="bg-white border text-black border-gray-200 rounded-xl p-6">
-      
+
       {/* Header */}
       <div className="flex justify-between text-black items-start mb-4">
         <div>
-          <h2 className="text-lg font-semibold">
-            Purchase Orders & Tracking
-          </h2>
+          <h2 className="text-lg font-semibold">Purchase Orders & Tracking</h2>
           <p className="text-sm text-gray-500">
             Manage purchase orders, delivery schedules, and payment status
           </p>
         </div>
 
-        <button className="px-4 py-2 text-sm rounded-md bg-slate-700 text-white">
-          + New Contract
+        <button
+          onClick={() => setOpen(true)}
+          className="px-4 py-2 text-sm rounded-md bg-slate-700 text-white"
+        >
+          + New Order
         </button>
       </div>
+
+      {/* ✅ Fixed: pass both open and onClose */}
+      <CreateOrderModal open={open} onClose={() => setOpen(false)} />
 
       {/* Search & Filters */}
       <div className="flex gap-3 mb-4">
@@ -34,7 +40,6 @@ export default function PurchaseOrdersTracking() {
             className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-md text-sm"
           />
         </div>
-
         <button className="px-4 py-2 text-sm border border-gray-200 rounded-md flex items-center gap-2">
           <Filter className="h-4 w-4" />
           Filters
@@ -86,15 +91,7 @@ export default function PurchaseOrdersTracking() {
   );
 }
 
-/* ─────────── Table Row ─────────── */
-
-function Row({
-  progress,
-  payment,
-}: {
-  progress: string;
-  payment: string;
-}) {
+function Row({ progress, payment }: { progress: string; payment: string }) {
   return (
     <tr className="border-t border-gray-200">
       <td className="px-4 py-2">PO001</td>
@@ -104,27 +101,20 @@ function Row({
       <td className="px-4 py-2">2025-10-15</td>
       <td className="px-4 py-2">₹45,000</td>
 
-      {/* Progress */}
       <td className="px-4 py-2">
-        <span
-          className={`px-2 py-1 text-xs rounded ${
-            progress === "Inprogress"
-              ? "bg-blue-100 text-blue-700"
-              : "bg-yellow-100 text-yellow-700"
-          }`}
-        >
+        <span className={`px-2 py-1 text-xs rounded ${
+          progress === "Inprogress" ? "bg-blue-100 text-blue-700" : "bg-yellow-100 text-yellow-700"
+        }`}>
           {progress}
         </span>
       </td>
 
-      {/* Payment */}
       <td className="px-4 py-2">
         <span className="px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-700">
           {payment}
         </span>
       </td>
 
-      {/* Actions */}
       <td className="px-4 py-2 text-center">
         <Eye className="h-4 w-4 text-gray-500 cursor-pointer hover:text-gray-700" />
       </td>

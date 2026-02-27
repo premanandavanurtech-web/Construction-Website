@@ -237,9 +237,7 @@ export default function AddVendorModal({ open, onClose, onSave }: Props) {
   };
 
   const handleCancel = () => {
-    lsDel(VENDOR_DRAFT_KEY);
-    setForm(emptyForm);
-    setDocuments([]);
+
     onClose();
   };
 
