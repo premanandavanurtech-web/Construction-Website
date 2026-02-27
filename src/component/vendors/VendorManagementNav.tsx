@@ -28,7 +28,7 @@ export default function VendorManagementTabs() {
       </div>
 
       {/* Tabs */}
-      <div className="flex justify-around border-2  text-gray-100 p-1 rounded-lg w-fit">
+      <div className="flex justify-between w-full border-2  text-gray-100 p-1 rounded-lg">
         {tabs.map((tab) => {
           const isActive = pathname.includes(`/vendors/${tab.path}`);
 
@@ -36,7 +36,7 @@ export default function VendorManagementTabs() {
             <Link
               key={tab.path}
               href={`/vendors/${tab.path}`}
-              className={`px-5 py-2 text-sm rounded-md transition-all
+              className={`px-10 py-2 text-sm rounded-md   transition-all
                 ${
                   isActive
                     ? "bg-slate-700 text-white shadow"
