@@ -1,9 +1,10 @@
+import DesignPlanDrawings from '@/src/component/project/reece/Designplandrawings'
 import React from 'react'
 
 const DesignPage = () => {
   return (
     <div>
-      DesignPage
+      <DesignPlanDrawings/>
     </div>
   )
 }

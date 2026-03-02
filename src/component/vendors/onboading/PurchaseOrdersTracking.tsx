@@ -1,12 +1,102 @@
 "use client";
 
-import { Search, Filter, Eye } from "lucide-react";
-import { useState } from "react";
+import { Search, Filter, Eye, Pencil, Trash2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import CreateOrderModal from "../../project/order/CreateOrderModal";
 
-export default function PurchaseOrdersTracking() {
-  const [activeTab, setActiveTab] = useState("Active");
+const ORDERS_KEY = "purchase_orders_list";
+
+export type SavedOrder = {
+  id: string;
+  invoiceNo: string;
+  vendorName: string;
+  vendorEmail: string;
+  address: string;
+  city: string;
+  phone: string;
+  date: string;
+  orderedDate: string;
+  expectedDelivery: string;
+  selectedProject: string;
+  comments: string;
+  total: number;
+  subtotal: number;
+  taxRate: string;
+  items: {
+    id: number;
+    item: string;
+    description: string;
+    unit: string;
+    unitCost: string;
+    totalCost: string;
+  }[];
+  // vendor info
+  vendorAddress: string;
+  vendorShipping: string;
+  vendorContact: string;
+  // buyer
+  buyerName: string;
+  buyerAddress: string;
+  buyerShipping: string;
+  buyerContact: string;
+  buyerEmail: string;
+  signature: string;
+  // meta
+  status: "Active" | "Completed" | "Cancelled";
+  paymentStatus: "Pending" | "Paid" | "Partial";
+  createdAt: number;
+};
+
+function loadOrders(): SavedOrder[] {
+  try {
+    const raw = localStorage.getItem(ORDERS_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as SavedOrder[];
+  } catch { return []; }
+}
+
+function saveOrders(orders: SavedOrder[]) {
+  try { localStorage.setItem(ORDERS_KEY, JSON.stringify(orders)); } catch {}
+}
+
+export { loadOrders, saveOrders };
+
+// ─────────────────────────────────────────────────────────────
+type Props = { projects?: { id: string; name: string }[] };
+
+export default function PurchaseOrdersTracking({ projects = [] }: Props) {
+  const [activeTab, setActiveTab] = useState("All Orders");
   const [open, setOpen] = useState(false);
+  const [editOrder, setEditOrder] = useState<SavedOrder | null>(null);
+  const [orders, setOrders] = useState<SavedOrder[]>([]);
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    setOrders(loadOrders());
+  }, []);
+
+  const refreshOrders = () => setOrders(loadOrders());
+
+  const handleDelete = (id: string) => {
+    const updated = orders.filter((o) => o.id !== id);
+    saveOrders(updated);
+    setOrders(updated);
+  };
+
+  const filtered = orders.filter((o) => {
+    const matchTab =
+      activeTab === "All Orders" ||
+      (activeTab === "Active" && o.status === "Active") ||
+      (activeTab === "Completed" && o.status === "Completed");
+
+    const matchSearch =
+      !search ||
+      o.vendorName.toLowerCase().includes(search.toLowerCase()) ||
+      o.invoiceNo.toLowerCase().includes(search.toLowerCase()) ||
+      o.id.toLowerCase().includes(search.toLowerCase());
+
+    return matchTab && matchSearch;
+  });
 
   return (
     <div className="bg-white border text-black border-gray-200 rounded-xl p-6">
@@ -19,28 +109,33 @@ export default function PurchaseOrdersTracking() {
             Manage purchase orders, delivery schedules, and payment status
           </p>
         </div>
-
         <button
-          onClick={() => setOpen(true)}
-          className="px-4 py-2 text-sm rounded-md bg-slate-700 text-white"
+          onClick={() => { setEditOrder(null); setOpen(true); }}
+          className="px-4 py-2 text-sm rounded-md bg-slate-700 text-white hover:bg-slate-800 transition"
         >
           + New Order
         </button>
       </div>
 
-      {/* ✅ Fixed: pass both open and onClose */}
-      <CreateOrderModal open={open} onClose={() => setOpen(false)} />
+      <CreateOrderModal
+        open={open}
+        onClose={() => { setOpen(false); setEditOrder(null); refreshOrders(); }}
+        projects={projects}
+        editOrder={editOrder}
+      />
 
       {/* Search & Filters */}
       <div className="flex gap-3 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
           <input
-            placeholder="Search By Vendor Name, PO ID..."
-            className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-md text-sm"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by Vendor Name, PO ID, Invoice No..."
+            className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:border-slate-400"
           />
         </div>
-        <button className="px-4 py-2 text-sm border border-gray-200 rounded-md flex items-center gap-2">
+        <button className="px-4 py-2 text-sm border border-gray-200 rounded-md flex items-center gap-2 hover:bg-gray-50 transition">
           <Filter className="h-4 w-4" />
           Filters
         </button>
@@ -52,13 +147,19 @@ export default function PurchaseOrdersTracking() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-3 py-1.5 text-xs rounded-md border ${
+            className={`px-3 py-1.5 text-xs rounded-md border transition ${
               activeTab === tab
                 ? "bg-slate-700 text-white border-slate-700"
-                : "bg-gray-100 text-gray-700 border-gray-200"
+                : "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200"
             }`}
           >
             {tab}
+            <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
+              activeTab === tab ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
+            }`}>
+              {tab === "All Orders" ? orders.length
+                : orders.filter((o) => o.status === tab).length}
+            </span>
           </button>
         ))}
       </div>
@@ -68,22 +169,46 @@ export default function PurchaseOrdersTracking() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-gray-600">
             <tr>
-              <th className="px-4 py-2 text-left">PO ID</th>
-              <th className="px-4 py-2 text-left">Vendor</th>
-              <th className="px-4 py-2 text-left">PR Number</th>
-              <th className="px-4 py-2 text-left">Order Date</th>
-              <th className="px-4 py-2 text-left">Delivery Date</th>
-              <th className="px-4 py-2 text-left">Amount</th>
-              <th className="px-4 py-2 text-left">Progress</th>
-              <th className="px-4 py-2 text-left">Payment</th>
-              <th className="px-4 py-2 text-center">Actions</th>
+              <th className="px-4 py-3 text-left font-semibold text-xs">PO ID</th>
+              <th className="px-4 py-3 text-left font-semibold text-xs">Vendor Name</th>
+              <th className="px-4 py-3 text-left font-semibold text-xs">Invoice No.</th>
+              <th className="px-4 py-3 text-left font-semibold text-xs">Order Date</th>
+              <th className="px-4 py-3 text-left font-semibold text-xs">Delivery Date</th>
+              <th className="px-4 py-3 text-left font-semibold text-xs">Amount</th>
+              <th className="px-4 py-3 text-left font-semibold text-xs">Status</th>
+              <th className="px-4 py-3 text-left font-semibold text-xs">Payment</th>
+              <th className="px-4 py-3 text-center font-semibold text-xs">Actions</th>
             </tr>
           </thead>
 
           <tbody>
-            <Row progress="Inprogress" payment="Pending" />
-            <Row progress="Processing" payment="Pending" />
-            <Row progress="Inprogress" payment="Pending" />
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={9} className="px-4 py-10 text-center text-gray-400 text-sm">
+                  {orders.length === 0
+                    ? "No orders yet. Click \"+ New Order\" to create one."
+                    : "No orders match your search."}
+                </td>
+              </tr>
+            ) : (
+              filtered.map((order) => (
+                <OrderRow
+                  key={order.id}
+                  order={order}
+                  onEdit={() => { setEditOrder(order); setOpen(true); }}
+                  onDelete={() => handleDelete(order.id)}
+                  onToggleStatus={() => {
+                    const updated = orders.map((o) =>
+                      o.id === order.id
+                        ? { ...o, status: o.status === "Active" ? "Completed" : "Active" as "Active" | "Completed" }
+                        : o
+                    );
+                    saveOrders(updated);
+                    setOrders(updated);
+                  }}
+                />
+              ))
+            )}
           </tbody>
         </table>
       </div>
@@ -91,33 +216,115 @@ export default function PurchaseOrdersTracking() {
   );
 }
 
-function Row({ progress, payment }: { progress: string; payment: string }) {
+// ── Row ──────────────────────────────────────────────────────
+function OrderRow({
+  order,
+  onEdit,
+  onDelete,
+  onToggleStatus,
+}: {
+  order: SavedOrder;
+  onEdit: () => void;
+  onDelete: () => void;
+  onToggleStatus: () => void;
+}) {
+  const isOverdue =
+    order.expectedDelivery &&
+    new Date(order.expectedDelivery) < new Date() &&
+    order.status !== "Completed";
+
   return (
-    <tr className="border-t border-gray-200">
-      <td className="px-4 py-2">PO001</td>
-      <td className="px-4 py-2">TechBuild Solutions</td>
-      <td className="px-4 py-2">PR-2024-156</td>
-      <td className="px-4 py-2">2025-10-15</td>
-      <td className="px-4 py-2">2025-10-15</td>
-      <td className="px-4 py-2">₹45,000</td>
-
-      <td className="px-4 py-2">
-        <span className={`px-2 py-1 text-xs rounded ${
-          progress === "Inprogress" ? "bg-blue-100 text-blue-700" : "bg-yellow-100 text-yellow-700"
-        }`}>
-          {progress}
+    <tr className="border-t border-gray-100 hover:bg-gray-50 transition-colors">
+      {/* PO ID */}
+      <td className="px-4 py-3">
+        <span className="font-mono text-xs font-semibold bg-gray-100 px-2 py-0.5 rounded text-gray-700">
+          {order.id}
         </span>
       </td>
 
-      <td className="px-4 py-2">
-        <span className="px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-700">
-          {payment}
+      {/* Vendor */}
+      <td className="px-4 py-3 font-medium text-gray-800">
+        {order.vendorName || "—"}
+      </td>
+
+      {/* Invoice No */}
+      <td className="px-4 py-3 text-gray-600">{order.invoiceNo || "—"}</td>
+
+      {/* Order Date */}
+      <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+        {order.orderedDate || order.date || "—"}
+      </td>
+
+      {/* Delivery Date */}
+      <td className="px-4 py-3 whitespace-nowrap">
+        <span className={isOverdue ? "text-red-600 font-semibold" : "text-gray-600"}>
+          {order.expectedDelivery || "—"}
+          {isOverdue && <span className="ml-1 text-[10px]">⚠ Overdue</span>}
         </span>
       </td>
 
-      <td className="px-4 py-2 text-center">
-        <Eye className="h-4 w-4 text-gray-500 cursor-pointer hover:text-gray-700" />
+      {/* Amount */}
+      <td className="px-4 py-3 font-semibold text-gray-800 whitespace-nowrap">
+        ₹{order.total.toLocaleString("en-IN")}
+      </td>
+
+      {/* Status */}
+      <td className="px-4 py-3">
+        <button onClick={onToggleStatus}>
+          <StatusBadge value={order.status} />
+        </button>
+      </td>
+
+      {/* Payment */}
+      <td className="px-4 py-3">
+        <PaymentBadge value={order.paymentStatus} />
+      </td>
+
+      {/* Actions */}
+      <td className="px-4 py-3">
+        <div className="flex items-center justify-center gap-2">
+          <button
+            onClick={onEdit}
+            title="Edit"
+            className="w-7 h-7 rounded-md flex items-center justify-center text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={onDelete}
+            title="Delete"
+            className="w-7 h-7 rounded-md flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 transition"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </td>
     </tr>
+  );
+}
+
+function StatusBadge({ value }: { value: string }) {
+  const styles: Record<string, string> = {
+    Active:    "bg-green-100 text-green-700 border-green-200",
+    Completed: "bg-gray-100 text-gray-600 border-gray-200",
+    Cancelled: "bg-red-100 text-red-600 border-red-200",
+  };
+  return (
+    <span className={`px-2.5 py-0.5 text-xs rounded-full border font-medium ${styles[value] ?? styles.Active}`}>
+      {value}
+    </span>
+  );
+}
+
+function PaymentBadge({ value }: { value: string }) {
+  const styles: Record<string, string> = {
+    Pending: "bg-yellow-50 text-yellow-700 border-yellow-200",
+    Paid:    "bg-green-50 text-green-700 border-green-200",
+    Partial: "bg-blue-50 text-blue-700 border-blue-200",
+  };
+  return (
+    <span className={`px-2.5 py-0.5 text-xs rounded-full border font-medium ${styles[value] ?? styles.Pending}`}>
+      {value}
+    </span>
   );
 }
